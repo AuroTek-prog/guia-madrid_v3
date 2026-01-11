@@ -1,5 +1,4 @@
-// js/recommendations.js - Versión FINAL corregida: Filtro siempre visible + Premium en destacado + Básicos en locales
-
+// js/recommendations.js - Versión FINAL: Premium en "Recomendación destacada" + Básicos en locales + Filtro siempre visible
 let currentFilter = 'all'; // Filtro activo por defecto
 
 // Categorías por defecto (siempre visibles)
@@ -27,11 +26,11 @@ async function renderPage() {
     safeText('headline', t('recommendations.title'));
     safeText('subtitle', t('recommendations.subtitle') || 'Lugares seleccionados a poca distancia de tu apartamento en Madrid');
 
-    // Renderizar chips de filtro SIEMPRE (usa default si no hay en recs)
+    // Renderizar chips de filtro SIEMPRE
     renderFilterChips(recs.categories || defaultCategories);
 
-    // Featured estático + Premium partners (global:true)
-    renderFeatured(recs.featured);
+    // Renderizar sección destacada (estático + premium partners)
+    await renderFeaturedAndPremium();
 
     // Renderizar contenido filtrado (estático + básicos)
     await renderFilteredContent();
@@ -47,10 +46,10 @@ function renderFilterChips(categories) {
     container.innerHTML = '';
     categories.forEach(cat => {
         const chip = document.createElement('div');
-        chip.dataset.key = cat.key; // Para identificar el seleccionado
+        chip.dataset.key = cat.key;
         chip.className = `snap-start flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 border border-transparent cursor-pointer transition-all active:scale-95 ${
             cat.key === currentFilter 
-                ? 'bg-primary text-white font-semibold shadow-md'  // Azul fuerte + sombra para destacar
+                ? 'bg-primary text-white font-semibold shadow-md' 
                 : 'bg-gray-100 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700 text-gray-900 dark:text-gray-100'
         }`;
         chip.innerHTML = `
@@ -59,8 +58,6 @@ function renderFilterChips(categories) {
         `;
         chip.onclick = () => {
             currentFilter = cat.key;
-            console.log('Filtro cambiado a:', currentFilter);
-            // Actualizar visual de chips (quitar azul de todos y poner al seleccionado)
             document.querySelectorAll('#filter-chips > div').forEach(c => {
                 c.classList.remove('bg-primary', 'text-white', 'font-semibold', 'shadow-md');
                 c.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-gray-100', 'hover:border-gray-200', 'dark:hover:border-gray-700');
@@ -73,12 +70,18 @@ function renderFilterChips(categories) {
     });
 }
 
-// Renderiza recomendación destacada (estático) con fallback
-function renderFeatured(featured) {
+// Renderiza Recomendación destacada (estático) + Premium partners (global:true)
+async function renderFeaturedAndPremium() {
     const container = document.getElementById('featured-item');
     if (!container) return;
+    container.innerHTML = '';
 
-    if (featured) {
+    const apt = window.appState.apartmentData?.[window.appState.apartmentId];
+    const recs = apt.recommendations || {};
+
+    // Prioridad 1: Featured estático
+    if (recs.featured) {
+        const featured = recs.featured;
         safeText('featured-title', t('recommendations.hosts_pick'));
         container.innerHTML = `
             <div class="absolute top-3 left-3 z-10 bg-white/90 dark:bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
@@ -100,13 +103,54 @@ function renderFeatured(featured) {
                 </div>
                 <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2 mt-1">${t(`recommendations.descriptions.${featured.descriptionKey || 'no_desc'}`)}</p>
             </div>`;
-    } else {
+        return; // Prioridad: si hay featured estático, mostramos solo eso
+    }
+
+    // Prioridad 2: Premium partners
+    try {
+        const timestamp = new Date().getTime();
+        const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
+        if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
+        const allPartners = await partnersRes.json();
+
+        const premiumPartners = allPartners.filter(p => p.global === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+
+        if (premiumPartners.length > 0) {
+            safeText('featured-title', 'Recomendación Premium Destacada');
+            const premium = premiumPartners[0]; // Solo el primero
+            container.innerHTML = `
+                <div class="absolute top-3 left-3 z-10 bg-white/90 dark:bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-primary text-[14px]">directions_walk</span>
+                    <span class="text-xs font-bold text-gray-900 dark:text-white">${premium.distanceKey || 'N/A'}</span>
+                </div>
+                <div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover" style="background-image: url('${premium.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}');">
+                    <div class="w-full h-full bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                </div>
+                <div class="flex w-full flex-col items-stretch justify-center gap-1 p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">${premium.name}</p>
+                            <p class="text-primary text-sm font-medium mt-1">${t(`recommendations.types.${premium.categoryKey || 'unknown'}`)} • ${premium.priceRange || 'N/A'}</p>
+                        </div>
+                        <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full text-primary hover:bg-primary hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[20px] block">near_me</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2 mt-1">${premium.description || ''}</p>
+                    <p class="text-primary font-medium mt-2">${premium.offer || 'Oferta disponible'}</p>
+                </div>`;
+        } else {
+            safeText('featured-title', 'Recomendación destacada');
+            container.innerHTML = '<p class="text-center text-gray-500 py-4">No hay recomendación destacada disponible</p>';
+        }
+    } catch (err) {
+        console.error('Error cargando premium:', err);
         safeText('featured-title', 'Recomendación destacada');
         container.innerHTML = '<p class="text-center text-gray-500 py-4">No hay recomendación destacada disponible</p>';
     }
 }
 
-// Renderiza contenido filtrado (estático + partners)
+// Renderiza contenido filtrado (estático + básicos)
 async function renderFilteredContent() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
     if (!apt) return;
@@ -114,10 +158,10 @@ async function renderFilteredContent() {
     const sectionsContainer = document.getElementById('sections-container');
     if (!sectionsContainer) return;
 
-    sectionsContainer.innerHTML = ''; // Limpiar
+    sectionsContainer.innerHTML = '';
     let hasContent = false;
 
-    // 1. Recomendaciones estáticas filtradas
+    // Recomendaciones estáticas filtradas
     if (recs.sections) {
         recs.sections.forEach(section => {
             const filteredItems = section.items.filter(item => currentFilter === 'all' || item.typeKey === currentFilter);
@@ -131,8 +175,7 @@ async function renderFilteredContent() {
             itemsContainer.className = section.titleKey === 'essentials_title' ? 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4' : 'flex flex-col gap-4';
 
             filteredItems.forEach(item => {
-                // Tu lógica original de renderizado de items (transport, essentials, etc.)
-                // ... (mantén tu código aquí sin cambios)
+                // Mantener tu lógica de renderizado original aquí
             });
 
             sectionDiv.innerHTML += sectionHTML;
@@ -141,51 +184,23 @@ async function renderFilteredContent() {
         });
     }
 
-    // 2. Partners dinámicos
+    // Básicos (global:false) filtrados por zona y categoría
     try {
         const zone = await getApartmentZone(apt);
-        console.log('Apartamento en zona:', zone?.name || 'No detectada');
 
         const timestamp = new Date().getTime();
         const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
         if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
         const allPartners = await partnersRes.json();
 
-        // PREMIUM: global → siempre mostrar (solo filtrar por categoría)
-        const premiumPartners = allPartners.filter(p => p.global === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+        const basicPartners = allPartners.filter(p => {
+            if (p.global === true) return false;
+            if (!p.active) return false;
+            const inZone = zone && p.zones?.includes(zone.id);
+            const inCategory = currentFilter === 'all' || p.categoryKey === currentFilter;
+            return inZone && inCategory;
+        });
 
-        // BÁSICO: solo si hay zona y coincide
-        const basicPartners = zone ? allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter)) : [];
-
-        // Mostrar PREMIUM en sección destacada (arriba)
-        if (premiumPartners.length > 0) {
-            hasContent = true;
-            const premiumSection = document.createElement('div');
-            premiumSection.className = 'pt-8';
-            premiumSection.innerHTML = `<h3 class="text-xl font-bold mb-6 text-primary">Recomendaciones Premium</h3>`;
-
-            const premiumContainer = document.createElement('div');
-            premiumContainer.className = 'grid gap-6 md:grid-cols-2';
-
-            premiumPartners.forEach(partner => {
-                const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30';
-                card.innerHTML = `
-                    <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
-                    <div class="p-5">
-                        <span class="inline-block bg-primary text-white text-xs font-bold px-2 py-1 rounded mb-2">Premium</span>
-                        <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
-                        <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
-                    </div>`;
-                premiumContainer.appendChild(card);
-            });
-
-            premiumSection.appendChild(premiumContainer);
-            sectionsContainer.appendChild(premiumSection);
-        }
-
-        // Mostrar BÁSICOS en sección locales (debajo)
         if (basicPartners.length > 0) {
             hasContent = true;
             const basicSection = document.createElement('div');
