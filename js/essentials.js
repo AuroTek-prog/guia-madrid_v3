@@ -1,11 +1,11 @@
 /* =====================================================
-   js/essentials.js - Versión FINAL corregida y funcional
-   - WiFi, access y rules con fallback "No disponible"
-   - Raixer: solo abre 'street' si no hay 2 puertas
-   - Logs y notificaciones claras
+   js/essentials.js - Versión FINAL con LISTA DINÁMICA DE PUERTAS
+   - Detecta puertas reales vía /devices/{id}/doors
+   - Botones y LEDs solo para puertas existentes
+   - Fallbacks completos y logs detallados
 ===================================================== */
 
-// CONFIG RAIXER (restaurada)
+// CONFIG RAIXER
 const RAIXER_API = {
     baseUrl: 'https://api.raixer.com',
     apiUser: 'user_580949a8d4d6ac1f3602ebc9',
@@ -21,7 +21,29 @@ function getRaixerAuthHeaders() {
     };
 }
 
-// Verificar estado
+// Obtener puertas reales del dispositivo
+async function getRaixerDoors(deviceId) {
+    console.log(`[Raixer] Listando puertas reales del dispositivo: ${deviceId}`);
+    try {
+        const response = await fetch(`${RAIXER_API.baseUrl}/devices/${deviceId}/doors`, {
+            method: 'GET',
+            headers: getRaixerAuthHeaders()
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status}: ${errorText}`);
+        }
+        const doors = await response.json();
+        console.log('[Raixer] Puertas encontradas:', doors);
+        return doors;
+    } catch (error) {
+        console.error('[Raixer] Error listando puertas:', error);
+        showNotification('No se pudieron cargar las puertas (contacta al anfitrión)');
+        return [];
+    }
+}
+
+// Verificar estado del dispositivo
 async function checkRaixerDeviceStatus(deviceId) {
     console.log(`[Raixer] Verificando estado del dispositivo: ${deviceId}`);
     try {
@@ -40,23 +62,21 @@ async function checkRaixerDeviceStatus(deviceId) {
     }
 }
 
-// Abrir puerta
-async function raixerOpenDoor(deviceId, position = 'street') {
-    console.log(`[Raixer] Intentando abrir ${position} - deviceId: ${deviceId}`);
+// Abrir puerta usando use o _id
+async function raixerOpenDoor(deviceId, doorIdentifier) {
+    console.log(`[Raixer] Abriendo puerta ${doorIdentifier} - deviceId: ${deviceId}`);
     try {
         const response = await fetch(
-            `${RAIXER_API.baseUrl}/devices/${deviceId}/open-door/${position}`,
+            `${RAIXER_API.baseUrl}/devices/${deviceId}/open-door/${doorIdentifier}`,
             {
                 method: 'POST',
-                headers: getRaixerAuthHeaders(),
-                body: JSON.stringify({ deviceId, position })
+                headers: getRaixerAuthHeaders()
             }
         );
         if (!response.ok) throw new Error(`Error ${response.status}`);
         const result = await response.json();
-        console.log('[Raixer] Respuesta:', result);
-        const success = Array.isArray(result) ? result.every(d => d.status === 'success') : result.status === 'success';
-        return { success, result };
+        console.log('[Raixer] Respuesta apertura:', result);
+        return { success: true, result };
     } catch (error) {
         console.error('[Raixer] Error abriendo:', error);
         return { success: false, error: error.message };
@@ -120,7 +140,8 @@ async function initializeEssentials() {
         const apt = apartmentsData[apartmentId];
         if (!apt) throw new Error(`Apartamento ${apartmentId} no encontrado`);
 
-        // Carga básica con fallback (nunca "Cargando...")
+        // Carga básica con fallback
+        document.title = t('essentials.title');
         safeText('page-title', t('essentials.title'));
         safeText('apartment-name', apt.name || 'Apartamento sin nombre');
         safeText('apartment-address', apt.address || 'Dirección no disponible');
@@ -130,13 +151,13 @@ async function initializeEssentials() {
         safeText('wifi-network', apt.wifi?.network || 'No disponible');
         safeText('wifi-password', apt.wifi?.password || 'No disponible');
         const copyBtn = safeGet('wifi-copy-btn');
-        if (apt.wifi?.password) {
-            if (copyBtn) copyBtn.onclick = () => {
+        if (apt.wifi?.password && copyBtn) {
+            copyBtn.onclick = () => {
                 navigator.clipboard.writeText(apt.wifi.password);
                 showNotification(t('common.copied'));
             };
-        } else {
-            if (copyBtn) copyBtn.style.display = 'none';
+        } else if (copyBtn) {
+            copyBtn.style.display = 'none';
         }
 
         // Access Instructions
@@ -181,31 +202,23 @@ async function initializeEssentials() {
             }
         }
 
-        // RAIXER
+        // =====================================================
+        // RAIXER - Lista dinámica de puertas + LEDs
+        // =====================================================
         const portalBtn = safeGet('btn-portal-access');
         const houseBtn = safeGet('btn-house-access');
         const portalLed = safeGet('led-portal');
         const houseLed = safeGet('led-house');
 
         const deviceId = apt.raixerDevices?.deviceId;
-        const hasTwoDoors = apt.raixerDevices?.hasTwoDoors || false; // Añade este campo en JSON para pisos con 2 puertas
-
-        async function updateLed(led, deviceId) {
-            if (!led) return;
-            led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-yellow-500 animate-pulse';
-            const status = await checkRaixerDeviceStatus(deviceId);
-            if (status.success) {
-                led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'}`;
-            } else {
-                led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500';
-                showNotification('Estado de puerta no disponible');
-            }
-        }
 
         if (!deviceId) {
-            showNotification('Control de puertas no configurado');
+            showNotification('Control de puertas no configurado en este apartamento');
             [portalBtn, houseBtn].forEach(btn => {
-                if (btn) btn.disabled = true, btn.classList.add('opacity-50', 'cursor-not-allowed');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
             });
             [portalLed, houseLed].forEach(led => {
                 if (led) led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500';
@@ -213,29 +226,53 @@ async function initializeEssentials() {
             return;
         }
 
-        await updateLed(portalLed, deviceId);
-        await updateLed(houseLed, deviceId);
+        // Lista puertas reales
+        const doors = await getRaixerDoors(deviceId);
 
-        window.openPortalDoor = async () => {
-            showNotification('Abriendo portal...');
-            const result = await raixerOpenDoor(deviceId, 'street');
-            showNotification(result.success ? 'Portal abierto correctamente' : `Error: ${result.error || 'Desconocido'}`);
-            await updateLed(portalLed, deviceId);
-        };
+        // Función para actualizar LED (estado general del dispositivo)
+        async function updateLed(led) {
+            if (!led) return;
+            led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-yellow-500 animate-pulse';
+            const status = await checkRaixerDeviceStatus(deviceId);
+            led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'}`;
+        }
 
-        window.openHouseDoor = async () => {
-            showNotification('Abriendo puerta de la casa...');
-            if (hasTwoDoors) {
-                const result = await raixerOpenDoor(deviceId, 'home');
-                showNotification(result.success ? 'Puerta abierta correctamente' : `Error: ${result.error || 'Desconocido'}`);
+        // Inicializar LEDs
+        await updateLed(portalLed);
+        await updateLed(houseLed);
+
+        // Botones dinámicos según puertas reales
+        if (portalBtn) {
+            const portalDoor = doors.find(d => d.use?.toLowerCase() === 'street' || d.name?.toLowerCase().includes('calle') || d.name?.toLowerCase().includes('portal'));
+            if (portalDoor) {
+                portalBtn.onclick = async () => {
+                    showNotification('Abriendo portal...');
+                    const result = await raixerOpenDoor(deviceId, portalDoor.use || portalDoor._id);
+                    showNotification(result.success ? 'Portal abierto correctamente' : `Error: ${result.error || 'Desconocido'}`);
+                    await updateLed(portalLed);
+                };
             } else {
-                showNotification('Este apartamento solo tiene una puerta principal');
+                portalBtn.disabled = true;
+                portalBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                portalBtn.title = 'Portal no disponible';
             }
-            await updateLed(houseLed, deviceId);
-        };
+        }
 
-        if (portalBtn) portalBtn.onclick = window.openPortalDoor;
-        if (houseBtn) houseBtn.onclick = window.openHouseDoor;
+        if (houseBtn) {
+            const houseDoor = doors.find(d => d.use?.toLowerCase() === 'home' || d.name?.toLowerCase().includes('casa') || d.name?.toLowerCase().includes('interior'));
+            if (houseDoor) {
+                houseBtn.onclick = async () => {
+                    showNotification('Abriendo puerta interior...');
+                    const result = await raixerOpenDoor(deviceId, houseDoor.use || houseDoor._id);
+                    showNotification(result.success ? 'Puerta abierta correctamente' : `Error: ${result.error || 'Desconocido'}`);
+                    await updateLed(houseLed);
+                };
+            } else {
+                houseBtn.disabled = true;
+                houseBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                houseBtn.title = 'Puerta interior no disponible';
+            }
+        }
 
     } catch (err) {
         console.error('Error inicializando essentials:', err);
