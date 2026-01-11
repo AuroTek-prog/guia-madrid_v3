@@ -196,42 +196,49 @@ async function initializeEssentials() {
                 }
             });
             [portalLed, houseLed].forEach(led => {
-                if (led) led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500';
+                if (led) led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500 shadow-sm';
             });
             return;
         }
 
         const doors = await getRaixerDoors(deviceId);
 
-        async function updateLed(led) {
+        // Función updateLed (actualizada para soportar "desactivado")
+        async function updateLed(led, isAvailable = true) {
             if (!led) return;
+
+            if (!isAvailable) {
+                // Puerta no existe → LED gris fijo, sin pulso
+                led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500 shadow-sm';
+                return;
+            }
+
+            // Puerta existe → estado real con pulso de carga
             led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-yellow-500 animate-pulse';
             const status = await checkRaixerDeviceStatus(deviceId);
-            led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'}`;
+            led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'} shadow-sm`;
         }
 
-        await updateLed(portalLed);
-        await updateLed(houseLed);
+        // Inicializar LEDs según disponibilidad real
+        const portalDoor = doors.find(d => d.use?.toLowerCase() === 'street' || d.name?.toLowerCase().includes('calle') || d.name?.toLowerCase().includes('portal'));
+        const houseDoor = doors.find(d => d.use?.toLowerCase() === 'home' || d.name?.toLowerCase().includes('casa') || d.name?.toLowerCase().includes('interior'));
 
+        await updateLed(portalLed, !!portalDoor);
+        await updateLed(houseLed, !!houseDoor);
+
+        // Botones dinámicos
         if (portalBtn) {
-            const portalDoor = doors.find(d => d.use?.toLowerCase() === 'street' || d.name?.toLowerCase().includes('calle') || d.name?.toLowerCase().includes('portal'));
             if (portalDoor) {
                 portalBtn.onclick = async () => {
                     showNotification('Abriendo portal...');
                     const result = await raixerOpenDoor(deviceId, portalDoor.use || portalDoor._id);
+                    showNotification(result.success ? 'Portal abierto correctamente' : `Error: ${result.error || 'Desconocido'}`);
 
                     if (result.success) {
-                        showNotification('Portal abierto correctamente');
-
-                        if (portalLed) {
-                            portalLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
-                            setTimeout(async () => {
-                                await updateLed(portalLed);
-                            }, 2500);
-                        }
+                        portalLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
+                        setTimeout(async () => await updateLed(portalLed, true), 2500);
                     } else {
-                        showNotification(`Error: ${result.error || 'Desconocido'}`);
-                        await updateLed(portalLed);
+                        await updateLed(portalLed, true);
                     }
                 };
             } else {
@@ -242,24 +249,17 @@ async function initializeEssentials() {
         }
 
         if (houseBtn) {
-            const houseDoor = doors.find(d => d.use?.toLowerCase() === 'home' || d.name?.toLowerCase().includes('casa') || d.name?.toLowerCase().includes('interior'));
             if (houseDoor) {
                 houseBtn.onclick = async () => {
                     showNotification('Abriendo puerta interior...');
                     const result = await raixerOpenDoor(deviceId, houseDoor.use || houseDoor._id);
+                    showNotification(result.success ? 'Puerta abierta correctamente' : `Error: ${result.error || 'Desconocido'}`);
 
                     if (result.success) {
-                        showNotification('Puerta abierta correctamente');
-
-                        if (houseLed) {
-                            houseLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
-                            setTimeout(async () => {
-                                await updateLed(houseLed);
-                            }, 2500);
-                        }
+                        houseLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
+                        setTimeout(async () => await updateLed(houseLed, true), 2500);
                     } else {
-                        showNotification(`Error: ${result.error || 'Desconocido'}`);
-                        await updateLed(houseLed);
+                        await updateLed(houseLed, true);
                     }
                 };
             } else {
