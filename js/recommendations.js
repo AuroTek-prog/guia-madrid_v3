@@ -1,8 +1,8 @@
-// js/recommendations.js - Versión FINAL con barra de filtros sticky, Premium destacado y básicos por zona
+// js/recommendations.js - Versión FINAL corregida: Filtro siempre visible + Premium en destacado + Básicos en locales
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
-// Categorías por defecto (si no hay en apartments.json)
+// Categorías por defecto (siempre visibles)
 const defaultCategories = [
     { icon: "grid_view", key: "all" },
     { icon: "restaurant", key: "eat" },
@@ -27,32 +27,31 @@ async function renderPage() {
     safeText('headline', t('recommendations.title'));
     safeText('subtitle', t('recommendations.subtitle') || 'Lugares seleccionados a poca distancia de tu apartamento en Madrid');
 
-    // Renderizar chips de filtro SIEMPRE (sticky)
+    // Renderizar chips de filtro SIEMPRE (usa default si no hay en recs)
     renderFilterChips(recs.categories || defaultCategories);
 
-    // Featured (estático) + Premium (partners global)
+    // Featured estático + Premium partners (global:true)
     renderFeatured(recs.featured);
 
-    // Renderizar contenido filtrado (estático + partners)
+    // Renderizar contenido filtrado (estático + básicos)
     await renderFilteredContent();
 
     // Configurar navegación inferior
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
 
-// Renderiza chips de filtro (siempre visible, sticky)
+// Renderiza chips de filtro (siempre visible y con color azul al seleccionar)
 function renderFilterChips(categories) {
     const container = document.getElementById('filter-chips');
     if (!container) return;
     container.innerHTML = '';
-    container.classList.add('sticky', 'top-0', 'bg-white', 'dark:bg-gray-900', 'z-20', 'py-2', 'px-4', 'border-b', 'border-gray-200', 'dark:border-gray-800');
-
     categories.forEach(cat => {
         const chip = document.createElement('div');
+        chip.dataset.key = cat.key; // Para identificar el seleccionado
         chip.className = `snap-start flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 border border-transparent cursor-pointer transition-all active:scale-95 ${
             cat.key === currentFilter 
-                ? 'bg-primary text-white font-semibold' 
-                : 'bg-gray-100 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
+                ? 'bg-primary text-white font-semibold shadow-md'  // Azul fuerte + sombra para destacar
+                : 'bg-gray-100 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700 text-gray-900 dark:text-gray-100'
         }`;
         chip.innerHTML = `
             <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
@@ -61,6 +60,13 @@ function renderFilterChips(categories) {
         chip.onclick = () => {
             currentFilter = cat.key;
             console.log('Filtro cambiado a:', currentFilter);
+            // Actualizar visual de chips (quitar azul de todos y poner al seleccionado)
+            document.querySelectorAll('#filter-chips > div').forEach(c => {
+                c.classList.remove('bg-primary', 'text-white', 'font-semibold', 'shadow-md');
+                c.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-gray-100', 'hover:border-gray-200', 'dark:hover:border-gray-700');
+            });
+            chip.classList.add('bg-primary', 'text-white', 'font-semibold', 'shadow-md');
+            chip.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-gray-100', 'hover:border-gray-200', 'dark:hover:border-gray-700');
             renderFilteredContent();
         };
         container.appendChild(chip);
@@ -125,8 +131,8 @@ async function renderFilteredContent() {
             itemsContainer.className = section.titleKey === 'essentials_title' ? 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4' : 'flex flex-col gap-4';
 
             filteredItems.forEach(item => {
-                // Mantener lógica original de renderizado de items (transport, essentials, etc.)
-                // ... código original aquí
+                // Tu lógica original de renderizado de items (transport, essentials, etc.)
+                // ... (mantén tu código aquí sin cambios)
             });
 
             sectionDiv.innerHTML += sectionHTML;
@@ -145,21 +151,22 @@ async function renderFilteredContent() {
         if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
         const allPartners = await partnersRes.json();
 
+        // PREMIUM: global → siempre mostrar (solo filtrar por categoría)
         const premiumPartners = allPartners.filter(p => p.global === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+
+        // BÁSICO: solo si hay zona y coincide
         const basicPartners = zone ? allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter)) : [];
 
-        console.log('Premium visibles:', premiumPartners.map(p => p.name));
-        console.log('Básicos visibles:', basicPartners.map(p => p.name));
-
-        if (premiumPartners.length > 0 || basicPartners.length > 0) hasContent = true;
-
-        // PREMIUM arriba
+        // Mostrar PREMIUM en sección destacada (arriba)
         if (premiumPartners.length > 0) {
+            hasContent = true;
             const premiumSection = document.createElement('div');
             premiumSection.className = 'pt-8';
             premiumSection.innerHTML = `<h3 class="text-xl font-bold mb-6 text-primary">Recomendaciones Premium</h3>`;
+
             const premiumContainer = document.createElement('div');
             premiumContainer.className = 'grid gap-6 md:grid-cols-2';
+
             premiumPartners.forEach(partner => {
                 const card = document.createElement('div');
                 card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30';
@@ -173,17 +180,21 @@ async function renderFilteredContent() {
                     </div>`;
                 premiumContainer.appendChild(card);
             });
+
             premiumSection.appendChild(premiumContainer);
             sectionsContainer.appendChild(premiumSection);
         }
 
-        // BÁSICOS abajo
+        // Mostrar BÁSICOS en sección locales (debajo)
         if (basicPartners.length > 0) {
+            hasContent = true;
             const basicSection = document.createElement('div');
             basicSection.className = 'pt-8';
             basicSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas locales en ${zone?.name || 'tu zona'}</h3>`;
+
             const basicContainer = document.createElement('div');
             basicContainer.className = 'grid gap-6 md:grid-cols-2';
+
             basicPartners.forEach(partner => {
                 const card = document.createElement('div');
                 card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow';
@@ -196,6 +207,7 @@ async function renderFilteredContent() {
                     </div>`;
                 basicContainer.appendChild(card);
             });
+
             basicSection.appendChild(basicContainer);
             sectionsContainer.appendChild(basicSection);
         }
