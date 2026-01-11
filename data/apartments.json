@@ -133,7 +133,7 @@
       { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" },
       { "icon": "bedtime", "titleKey": "rules_quiet_hours", "subtitleKey": "rules_quiet_hours_time", "color": "indigo" }
     ],
-    "raixerDevices": { "deviceId": "3f0042000b504b5350313221" },
+    "raixerDevices": { "deviceId": "3e0036000a47363433353735" },
     "emergency": {
       "apartmentId": "B5",
       "host": {
