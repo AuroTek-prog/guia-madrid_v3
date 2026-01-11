@@ -128,7 +128,7 @@
     "lng": -3.7042,
     "zones": ["sol"],
     "active": true,
-    "global": true,
+    "global": false,
     "plan": "premium",
     "offer": "Churros con descuento para huéspedes",
     "distanceKey": "5 min walk",
