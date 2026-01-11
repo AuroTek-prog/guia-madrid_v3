@@ -1,6 +1,8 @@
 // js/main.js - Versión robusta, completa y optimizada (enero 2026)
 
+// ==============================
 // Estado global
+// ==============================
 window.appState = {
     apartmentId: null,
     lang: 'es',
@@ -8,7 +10,9 @@ window.appState = {
     translations: null
 };
 
+// ==============================
 // Traducción global con fallback
+// ==============================
 window.t = function(key) {
     if (!window.appState?.translations) return `[${key}]`;
     const keys = key.split('.');
@@ -20,7 +24,9 @@ window.t = function(key) {
     return value;
 };
 
-// Helper global para actualizar texto con fallback
+// ==============================
+// Helper global para texto seguro
+// ==============================
 window.safeText = function(id, value) {
     const el = document.getElementById(id);
     if (!el) {
@@ -32,7 +38,9 @@ window.safeText = function(id, value) {
     }
 };
 
-// Copiar al portapapeles (con fallback)
+// ==============================
+// Copiar al portapapeles
+// ==============================
 window.copyToClipboard = function(text) {
     if (!navigator.clipboard) {
         console.warn('Clipboard API no soportado');
@@ -47,42 +55,61 @@ window.copyToClipboard = function(text) {
         });
 };
 
+// ==============================
 // Mostrar notificaciones
+// ==============================
 window.showNotification = function(message) {
     const notification = document.createElement('div');
-    notification.className = 'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+    notification.className =
+        'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
     notification.textContent = message;
     document.body.appendChild(notification);
+
     setTimeout(() => { notification.style.opacity = '0'; }, 2000);
-    setTimeout(() => { if (document.body.contains(notification)) document.body.removeChild(notification); }, 2300);
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 2300);
 };
 
-// Navegar atrás preservando parámetros
+// ==============================
+// Volver atrás preservando params
+// ==============================
 window.goBack = function() {
-    const currentParams = new URLSearchParams(window.location.search);
-    const apartmentId = currentParams.get('apartment') || 'sol-101';
-    const lang = currentParams.get('lang') || 'es';
-    console.log('goBack() - Volviendo con apartamento:', apartmentId);
-    window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
+    const params = new URLSearchParams(window.location.search);
+    const apartmentId = params.get('apartment') || 'sol-101';
+    const lang = params.get('lang') || 'es';
+
+    window.location.href =
+        `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
 };
 
-// Cambiar idioma (preserva apartamento actual)
+// ==============================
+// Cambiar idioma (preserva apt)
+// ==============================
 window.changeLanguage = function() {
     const apartmentId = window.appState.apartmentId || 'sol-101';
     const lang = window.appState.lang || 'es';
-    window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
+
+    window.location.href =
+        `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
 };
 
-// Configurar navegación inferior con parámetros
+// ======================================================
+// Navegación inferior (RUTAS ABSOLUTAS DESDE LA RAÍZ)
+// ======================================================
 window.setupBottomNavigation = function(apartmentId, lang) {
     const baseUrl = `?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
+    const root = window.ROOT_PATH || './';
+
     const navMap = [
-        { id: 'nav-home', href: `index.html${baseUrl}`, key: 'navigation.nav_home' },
-        { id: 'nav-devices', href: `pages/devices.html${baseUrl}`, key: 'navigation.devices_title' },
-        { id: 'nav-recommendations', href: `pages/recommendations.html${baseUrl}`, key: 'navigation.recommendations_title' },
-        { id: 'nav-tourism', href: `pages/tourism.html${baseUrl}`, key: 'navigation.tourism_title' },
-        { id: 'nav-contact', href: `pages/contact.html${baseUrl}`, key: 'navigation.contact_title' },
-        { id: 'nav-essentials', href: `pages/essentials.html${baseUrl}`, key: 'navigation.essentials_title' }
+        { id: 'nav-home', href: `${root}index.html${baseUrl}`, key: 'navigation.nav_home' },
+        { id: 'nav-devices', href: `${root}pages/devices.html${baseUrl}`, key: 'navigation.devices_title' },
+        { id: 'nav-recommendations', href: `${root}pages/recommendations.html${baseUrl}`, key: 'navigation.recommendations_title' },
+        { id: 'nav-tourism', href: `${root}pages/tourism.html${baseUrl}`, key: 'navigation.tourism_title' },
+        { id: 'nav-contact', href: `${root}pages/contact.html${baseUrl}`, key: 'navigation.contact_title' },
+        { id: 'nav-essentials', href: `${root}pages/essentials.html${baseUrl}`, key: 'navigation.essentials_title' }
     ];
 
     navMap.forEach(({ id, href, key }) => {
@@ -93,10 +120,13 @@ window.setupBottomNavigation = function(apartmentId, lang) {
             if (span) span.textContent = t(key) || key;
         }
     });
-    console.log('Navegación inferior configurada:', baseUrl);
+
+    console.log('Navegación inferior configurada con rutas absolutas:', navMap);
 };
 
+// ==============================
 // Inicialización principal
+// ==============================
 async function initializeApp() {
     const params = new URLSearchParams(window.location.search);
     window.appState.apartmentId = params.get('apartment') || 'sol-101';
@@ -108,21 +138,23 @@ async function initializeApp() {
             fetch(`${window.ROOT_PATH}data/${window.appState.lang}.json`)
         ]);
 
-        if (!apartmentRes.ok || !translationsRes.ok) throw new Error('Error cargando datos');
+        if (!apartmentRes.ok || !translationsRes.ok) {
+            throw new Error('Error cargando datos');
+        }
 
         window.appState.apartmentData = await apartmentRes.json();
         window.appState.translations = await translationsRes.json();
 
-        // Validar apartamento solicitado
         if (!window.appState.apartmentData[window.appState.apartmentId]) {
             console.warn(`Apartamento "${window.appState.apartmentId}" no encontrado → usando default`);
             window.appState.apartmentId = 'sol-101';
-            if (!window.appState.apartmentData['sol-101']) throw new Error('Default sol-101 no existe');
+            if (!window.appState.apartmentData['sol-101']) {
+                throw new Error('Default sol-101 no existe');
+            }
         }
 
         document.documentElement.lang = window.appState.lang;
 
-        // Esperar a renderPage (de index.js)
         const wait = setInterval(() => {
             if (typeof renderPage === 'function') {
                 clearInterval(wait);
@@ -130,17 +162,18 @@ async function initializeApp() {
             }
         }, 100);
 
-        setTimeout(() => clearInterval(wait), 5000); // Timeout seguridad
+        setTimeout(() => clearInterval(wait), 5000);
 
     } catch (error) {
-        console.error("Error inicializando app:", error);
+        console.error('Error inicializando app:', error);
         document.body.innerHTML = `
             <div class="p-8 text-center bg-white dark:bg-gray-900 min-h-screen flex flex-col items-center justify-center">
                 <h1 class="text-3xl font-bold text-red-600 mb-4">Error al cargar la guía</h1>
                 <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
-                    Parece que hay un problema con los datos o la conexión. Intenta refrescar o contacta al anfitrión.
+                    Parece que hay un problema con los datos o la conexión.
                 </p>
-                <a href="index.html?apartment=${window.appState.apartmentId || 'sol-101'}&lang=${window.appState.lang || 'es'}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
+                <a href="${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(window.appState.apartmentId || 'sol-101')}&lang=${encodeURIComponent(window.appState.lang || 'es')}"
+                   class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
                     Volver al inicio
                 </a>
             </div>`;
@@ -150,59 +183,45 @@ async function initializeApp() {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 // =====================================================
-// Zona del apartamento (Turf.js) - versión mejorada
+// Zona del apartamento (Turf.js)
 // =====================================================
 let __zonesCache = null;
 
-// Función para detectar la zona del apartamento
 async function getApartmentZone(apartment) {
-    if (!apartment || typeof apartment !== 'object' || !apartment.lat || !apartment.lng) {
-        console.warn('getApartmentZone: apartamento inválido o sin coordenadas');
+    if (!apartment || !apartment.lat || !apartment.lng) {
+        console.warn('getApartmentZone: apartamento inválido');
         return null;
     }
 
     const lat = Number(apartment.lat);
     const lng = Number(apartment.lng);
-    if (isNaN(lat) || isNaN(lng)) {
-        console.warn('Coordenadas inválidas:', apartment);
-        return null;
-    }
+    if (isNaN(lat) || isNaN(lng)) return null;
 
     try {
-        // Cargar zonas solo una vez
         if (!__zonesCache) {
-            const zonesRes = await fetch(`${window.ROOT_PATH}data/zones.json`);
-            if (!zonesRes.ok) throw new Error('No se pudo cargar zones.json');
-            __zonesCache = await zonesRes.json();
-            if (!Array.isArray(__zonesCache)) {
-                throw new Error('zones.json no es un array válido');
-            }
-            console.log('Zonas cargadas:', __zonesCache.length);
+            const res = await fetch(`${window.ROOT_PATH}data/zones.json`);
+            if (!res.ok) throw new Error('No se pudo cargar zones.json');
+            __zonesCache = await res.json();
         }
 
         const point = turf.point([lng, lat]);
 
         for (const zone of __zonesCache) {
-            if (!zone || !Array.isArray(zone.polygon) || zone.polygon.length < 3) {
-                console.warn('Zona inválida ignorada:', zone);
-                continue;
-            }
+            if (!Array.isArray(zone.polygon) || zone.polygon.length < 3) continue;
 
             let coords = zone.polygon.map(p => [Number(p[0]), Number(p[1])]);
             const first = coords[0];
             const last = coords[coords.length - 1];
             if (first[0] !== last[0] || first[1] !== last[1]) {
-                coords = [...coords, first];
+                coords.push(first);
             }
 
             const polygon = turf.polygon([coords]);
             if (turf.booleanPointInPolygon(point, polygon)) {
-                console.log('Zona detectada:', zone.name || zone.id);
                 return zone;
             }
         }
 
-        console.log('No se encontró zona para el apartamento:', apartment);
         return null;
     } catch (err) {
         console.error('Error detectando zona:', err);
