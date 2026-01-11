@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mis Guías Digitales - Aurotek Guest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1152d4",
+                    },
+                    fontFamily: {
+                        display: ["Manrope", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+
+    <div class="container mx-auto px-4 py-12 max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-primary mb-4">Mis Guías Digitales</h1>
+            <p class="text-lg text-gray-600 dark:text-gray-400">
+                Comparte estos enlaces con tus huéspedes. Cada apartamento tiene su propia guía personalizada.
+            </p>
+        </div>
+
+        <!-- Lista de apartamentos -->
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <!-- Apartamento 1 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="h-48 bg-cover bg-center" style="background-image: url('assets/images/apartments/sol-101/portada.jpg');"></div>
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Apartamento Sol 101</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Calle de la Preciosa, 5, 1º 101</p>
+                    <a href="https://aurotek-prog.github.io/guia-madrid_v3/?apartment=sol-101" target="_blank"
+                       class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors">
+                        Abrir Guía
+                    </a>
+                    <p class="text-xs text-center mt-3 text-gray-500 dark:text-gray-400">
+                        Copia el enlace o genera QR
+                    </p>
+                </div>
+            </div>
+
+            <!-- Apartamento 2 -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="h-48 bg-cover bg-center" style="background-image: url('assets/images/apartments/granvia-205/portada.jpg');"></div>
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Piso Gran Vía 205</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Gran Vía, 60, 2º D</p>
+                    <a href="https://aurotek-prog.github.io/guia-madrid_v3/?apartment=granvia-205" target="_blank"
+                       class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors">
+                        Abrir Guía
+                    </a>
+                    <p class="text-xs text-center mt-3 text-gray-500 dark:text-gray-400">
+                        Copia el enlace o genera QR
+                    </p>
+                </div>
+            </div>
+
+            <!-- Apartamento 3 - Ejemplo (añade más cuando subas nuevos pisos) -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow">
+                <div class="h-48 bg-cover bg-center" style="background-image: url('https://via.placeholder.com/800x500/1152d4/ffffff?text=Nuevo+Piso');"></div>
+                <div class="p-6">
+                    <h2 class="text-xl font-semibold mb-2">Nuevo Apartamento</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Añade dirección aquí</p>
+                    <a href="#" class="block w-full bg-gray-400 text-white font-medium py-3 px-6 rounded-xl text-center cursor-not-allowed">
+                        Pendiente de alta
+                    </a>
+                    <p class="text-xs text-center mt-3 text-gray-500 dark:text-gray-400">
+                        Edita apartments.json para activar
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrucciones rápidas para el cliente -->
+        <div class="mt-12 p-6 bg-white dark:bg-gray-800 rounded-2xl shadow">
+            <h3 class="text-2xl font-semibold mb-4">¿Cómo añadir un nuevo apartamento?</h3>
+            <ol class="list-decimal pl-6 space-y-3 text-gray-700 dark:text-gray-300">
+                <li>Crea carpeta con fotos: <code>assets/images/apartments/nuevo-slug/</code></li>
+                <li>Sube <strong>portada.jpg</strong> (foto principal del encabezado)</li>
+                <li>Edita <code>data/apartments.json</code>: copia un bloque existente, cambia:
+                    <ul class="list-disc pl-6 mt-2">
+                        <li><code>"id"</code> y <code>"slug"</code> al mismo valor único (ej. "malasana-301")</li>
+                        <li><code>"name"</code>, <code>"address"</code>, <code>"zone"</code></li>
+                        <li><code>"images.portada"</code> a la nueva ruta</li>
+                        <li><code>"raixerDevices.deviceId"</code> al ID real de Raixer de ese piso</li>
+                    </ul>
+                </li>
+                <li>Commit y push → el enlace nuevo aparece automáticamente</li>
+            </ol>
+            <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
+                Si necesitas ayuda, envía las fotos + datos y yo lo subo.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>© 2026 Aurotek Guest - Guías Inteligentes para Alojamientos Turísticos</p>
+        </footer>
+    </div>
+
+</body>
+</html>
