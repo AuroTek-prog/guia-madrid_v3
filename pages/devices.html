@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dispositivos del Apartamento</title>
+    <link rel="stylesheet" href="../css/styles.css">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1a2233",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body {
+            min-height: 100dvh;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white transition-colors duration-200">
+    <div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pb-40">
+
+        <!-- HEADER (NO TOCADO) -->
+        <header class="sticky top-0 z-10 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 transition-colors duration-200">
+            <div class="flex items-center p-4 justify-between h-16">
+                <button onclick="goBack()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                </button>
+                <h1 id="page-title" class="text-slate-900 dark:text-white text-base font-bold leading-tight tracking-tight flex-1 text-center pr-8">
+                    Cargando...
+                </h1>
+                <button onclick="changeLanguage()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                    <span class="material-symbols-outlined">language</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="flex-1 w-full max-w-md mx-auto px-4 pt-6 space-y-8">
+
+            <!-- TITULAR -->
+            <div>
+                <h2 id="headline" class="text-[30px] font-bold tracking-tight leading-tight">
+                    Cargando...
+                </h2>
+                <p id="subtitle" class="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                    Cargando...
+                </p>
+            </div>
+
+            <!-- QUICK ACTIONS -->
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="showDeviceDetails('access')" class="relative group flex flex-col items-start gap-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-surface-light dark:bg-surface-dark p-5 shadow-sm hover:shadow-lg transition-all active:scale-[0.98]">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-[24px]">lock_open</span>
+                    </div>
+                    <div class="space-y-1">
+                        <span id="unlock-door-text" class="font-semibold block">
+                            Cargando...
+                        </span>
+                        <span id="unlock-door-desc" class="text-xs text-slate-500 dark:text-slate-400">
+                            Cargando...
+                        </span>
+                    </div>
+                    <div class="absolute top-4 right-4 h-2.5 w-2.5 rounded-full bg-green-500 shadow"></div>
+                </button>
+
+                <button onclick="showDeviceDetails('wifi')" class="group flex flex-col items-start gap-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-surface-light dark:bg-surface-dark p-5 shadow-sm hover:shadow-lg transition-all active:scale-[0.98]">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <span class="material-symbols-outlined text-[24px]">wifi</span>
+                    </div>
+                    <div class="space-y-1">
+                        <span id="wifi-code-text" class="font-semibold block">
+                            Cargando...
+                        </span>
+                        <span id="wifi-code-desc" class="text-xs text-slate-500 dark:text-slate-400">
+                            Cargando...
+                        </span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- SECCIÓN -->
+            <div class="flex items-center justify-between">
+                <h3 id="appliances-title" class="text-lg font-semibold tracking-tight">
+                    Cargando...
+                </h3>
+            </div>
+
+            <!-- LISTA -->
+            <div id="devices-list" class="flex flex-col gap-3"></div>
+        </main>
+
+        <!-- BOTÓN SOPORTE -->
+        <div class="fixed bottom-16 left-0 right-0 p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-20">
+            <button onclick="contactHost()" class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-xl shadow-lg transition-all active:scale-[0.98]">
+                <span class="material-symbols-outlined text-[20px]">support_agent</span>
+                <span id="contact-host-text">Cargando...</span>
+            </button>
+        </div>
+
+        <!-- MODAL (NO TOCADO) -->
+        <div id="device-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+            <div class="bg-surface-light dark:bg-surface-dark rounded-2xl max-w-md w-full max-h-[80vh] overflow-y-auto p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 id="modal-title" class="text-xl font-bold">
+                        Título del Dispositivo
+                    </h3>
+                    <button onclick="closeDeviceModal()" class="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div id="modal-content" class="text-slate-700 dark:text-slate-300"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV INFERIOR (NO TOCADO) -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800">
+        <div class="flex justify-around items-center h-16 max-w-md mx-auto">
+            <a id="nav-home" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">home</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-devices" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">power</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-recommendations" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-tourism" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">map</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-contact" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">contact_phone</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        window.ROOT_PATH = '../';
+    </script>
+    <script src="../js/main.js"></script>
+    <script src="../js/devices.js"></script>
+</body>
+</html>

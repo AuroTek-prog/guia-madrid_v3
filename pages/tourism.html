@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html class="dark" lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Imprescindibles de Madrid</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#192233",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        /* Animaciones para el modal */
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+            background-color: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-backdrop.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-backdrop.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Asegurarse de que los botones sean clicables */
+        .details-btn {
+            cursor: pointer !important;
+            pointer-events: auto !important;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-white antialiased overflow-x-hidden">
+    
+    <!-- Top Bar -->
+    <header
+        class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 dark:bg-background-dark/80 border-b border-gray-200/10 dark:border-white/5 transition-all duration-300">
+        <div class="flex items-center p-4 justify-between h-16">
+            <button onclick="goBack()"
+                class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 id="page-title"
+                class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-wide flex-1 text-center uppercase text-sm">
+                Cargando...</h1>
+            <!-- Botón de cambio de idioma -->
+            <button onclick="changeLanguage()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                <span class="material-symbols-outlined">language</span>
+            </button>
+        </div>
+    </header>
+
+    <section class="relative w-full flex flex-col group/design-root">
+        <div class="w-full">
+            <div id="hero-image" class="relative w-full h-[65vh] min-h-[500px] overflow-hidden">
+                <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
+                    style="background-image: url('');">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-t from-background-dark via-background-dark/40 to-transparent opacity-90">
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full p-6 pb-12 flex flex-col justify-end h-full">
+                        <span id="hero-category"
+                            class="text-primary font-medium tracking-[0.2em] uppercase text-xs mb-2">Cargando...</span>
+                        <h2 id="hero-headline"
+                            class="text-white text-5xl font-bold leading-tight tracking-tight mb-2 drop-shadow-lg">
+                            Cargando...</h2>
+                        <p id="hero-description" class="text-gray-300 text-lg max-w-md font-light leading-relaxed">
+                            Cargando...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <main class="relative flex flex-col w-full px-4 pb-24 -mt-6 z-10">
+        <div class="flex flex-col gap-1 mb-6">
+            <h3 id="experiences-headline" class="text-gray-900 dark:text-white text-2xl font-bold leading-tight">
+                Cargando...</h3>
+            <p id="experiences-subtitle" class="text-gray-500 dark:text-gray-400 text-sm">Cargando...</p>
+        </div>
+        <div id="experiences-feed" class="flex flex-col gap-8"></div>
+    </main>
+    
+    <!-- Botón flotante del mapa -->
+    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+        <button id="map-button"
+            class="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform duration-200">
+            <span class="material-symbols-outlined" style="font-size: 20px;">map</span>
+            <span id="fab-text" class="text-sm font-bold tracking-wide">Cargando...</span>
+        </button>
+    </div>
+    
+    <!-- Modal de selección de mapa -->
+    <div id="map-modal" class="modal-backdrop fixed inset-0 z-50 flex items-end justify-center" style="display: none;">
+        <div class="modal-content bg-white dark:bg-surface-dark w-full max-w-md rounded-t-3xl p-6 pb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Abrir mapa con</h3>
+                <button id="close-modal"
+                    class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4">
+                <button
+                    class="map-option flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                    data-map="google">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-red-600 dark:text-red-400 text-xl">map</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">Google Maps</span>
+                </button>
+
+                <button
+                    class="map-option flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                    data-map="apple">
+                    <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-gray-700 dark:text-gray-300 text-xl">map</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">Apple Maps</span>
+                </button>
+
+                <button
+                    class="map-option flex flex-col items-center gap-2 p-4 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
+                    data-map="waze">
+                    <div
+                        class="w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-400 text-xl">map</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900 dark:text-white">Waze</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav
+        class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800">
+        <div class="flex justify-around items-center h-16 max-w-md mx-auto">
+            <a id="nav-home" href="#"
+                class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">home</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-devices" href="#"
+                class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">power</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-recommendations" href="#"
+                class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-tourism" href="#"
+                class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">map</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <!-- Nuevo elemento de navegación para contacto -->
+            <a id="nav-contact" href="#"
+                class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">contact_phone</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        window.ROOT_PATH = '../';
+    </script>
+    <script src="../js/main.js"></script>
+    <script src="../js/tourism.js"></script>
+</body>
+</html>

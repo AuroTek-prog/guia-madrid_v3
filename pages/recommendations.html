@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head><meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Recomendaciones Cercanas</title><link rel="stylesheet" href="../css/styles.css"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#1152d4", "background-light": "#f6f6f8", "background-dark": "#101622", }, fontFamily: { "display": ["Plus Jakarta Sans", "sans-serif"] }, borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"}, }, } }</script><style>.hide-scrollbar::-webkit-scrollbar { display: none; } .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }</style></head>
+
+<body class="bg-background-light dark:bg-background-dark text-gray-900 dark:text-white font-display">
+    <div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden max-w-md mx-auto shadow-2xl bg-white dark:bg-[#101622]">
+        <!-- Top Bar -->
+        <header class="sticky top-0 z-50 flex items-center justify-between bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 border-b border-gray-200 dark:border-gray-800">
+            <button onclick="goBack()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                <span class="material-symbols-outlined">arrow_back</span>
+            </button>
+            <h1 id="page-title" class="text-base font-bold text-center flex-1">Cargando...</h1>
+            <!-- Botón de cambio de idioma -->
+            <button onclick="changeLanguage()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+                <span class="material-symbols-outlined">language</span>
+            </button>
+        </header>
+
+        <div class="px-5 pt-6 pb-2"><h1 id="headline" class="text-gray-900 dark:text-white tracking-tight text-3xl font-extrabold leading-tight">Cargando...</h1><p id="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-2">Cargando...</p></div>
+        <div class="sticky top-[72px] z-40 bg-white dark:bg-[#101622] pt-2 pb-4"><div id="filter-chips" class="flex gap-3 px-5 overflow-x-auto hide-scrollbar snap-x"></div></div>
+        <section class="px-5 pb-2 pt-2"><div class="flex items-center gap-2 mb-3"><span class="material-symbols-outlined text-primary text-[20px]">stars</span><h3 id="featured-title" class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Cargando...</h3></div><div id="featured-item" class="group relative flex flex-col items-stretch justify-start rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none bg-white dark:bg-gray-800 overflow-hidden cursor-pointer active:scale-[0.99] transition-transform duration-200"></div></section>
+        <div id="sections-container" class="px-5 pt-6 pb-24"></div>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800">
+        <div class="flex justify-around items-center h-16 max-w-md mx-auto">
+            <a id="nav-home" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">home</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-devices" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">power</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-recommendations" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">explore</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <a id="nav-tourism" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">map</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+            <!-- Nuevo elemento de navegación para contacto -->
+            <a id="nav-contact" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                <span class="material-symbols-outlined">contact_phone</span>
+                <span class="text-[10px]">Cargando...</span>
+            </a>
+        </div>
+    </nav>
+    
+    <script>
+        window.ROOT_PATH = '../';
+    </script>
+    <script src="../js/main.js"></script>
+    <script src="../js/recommendations.js"></script>
+</body>
+</html>

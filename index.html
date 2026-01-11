@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html class="light" lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Guía de tu Estancia en Madrid</title>
+    
+    <!-- Google Fonts & Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .nav-card {
+            display: flex;
+            align-items: center;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(17,82,212,0.05) 0%, rgba(17,82,212,0) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .nav-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
+        }
+        .nav-card:hover::before { opacity: 1; }
+
+        .nav-icon {
+            width: 3.5rem; height: 3.5rem;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 1rem;
+            font-size: 1.75rem;
+            margin-right: 1rem;
+            background: linear-gradient(135deg, rgba(17,82,212,0.1) 0%, rgba(17,82,212,0.05) 100%);
+            transition: all 0.3s ease;
+        }
+        .nav-card:hover .nav-icon {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, rgba(17,82,212,0.2) 0%, rgba(17,82,212,0.1) 100%);
+        }
+        .nav-card .material-symbols-outlined {
+            color: #1152d4;
+            transition: transform 0.3s ease;
+        }
+        .nav-card:hover .material-symbols-outlined { transform: translateX(4px); }
+
+        .dark .nav-card {
+            background: #1a2233;
+            border-color: rgba(255,255,255,0.1);
+        }
+        .dark .nav-card::before {
+            background: linear-gradient(135deg, rgba(17,82,212,0.15) 0%, rgba(17,82,212,0) 100%);
+        }
+        .dark .nav-icon {
+            background: linear-gradient(135deg, rgba(17,82,212,0.15) 0%, rgba(17,82,212,0.05) 100%);
+        }
+        .dark .nav-card:hover .nav-icon {
+            background: linear-gradient(135deg, rgba(17,82,212,0.25) 0%, rgba(17,82,212,0.1) 100%);
+        }
+
+        body { min-height: max(884px, 100dvh); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d121b] dark:text-white min-h-screen flex flex-col antialiased selection:bg-primary/20">
+
+<!-- Hero Section -->
+<div class="relative w-full h-[55vh] shrink-0">
+    <div id="hero-image" class="absolute inset-0 bg-cover bg-center" data-alt="Sunlit Madrid balcony with view of classic architecture"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-background-light via-transparent to-black/20 dark:from-background-dark dark:via-transparent dark:to-black/40"></div>
+    <div class="absolute top-0 left-0 w-full p-6 pt-12 flex justify-between items-start">
+        <div class="bg-white/90 dark:bg-black/50 backdrop-blur-md p-2 rounded-full shadow-sm">
+            <span class="material-symbols-outlined text-primary dark:text-white text-2xl px-1">roofing</span>
+        </div>
+    </div>
+    <div class="absolute bottom-16 left-0 w-full px-6">
+        <p id="hero-subtitle" class="text-white/90 text-sm font-medium uppercase tracking-widest mb-2 shadow-black/10 drop-shadow-sm">Cargando...</p>
+        <h1 id="welcome-title" class="text-4xl md:text-5xl font-light text-[#0d121b] dark:text-white leading-tight drop-shadow-sm">
+            Cargando... <br/><span id="welcome-bold" class="font-bold">Cargando...</span>
+        </h1>
+    </div>
+</div>
+
+<!-- Floating Property Card -->
+<div class="relative px-6 -mt-10 z-10 w-full max-w-md mx-auto">
+    <div class="bg-white dark:bg-[#1a2233] rounded-2xl p-4 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-black/40 flex gap-4 items-center transform transition-transform hover:scale-[1.01] duration-300">
+        <div id="property-thumbnail" class="w-20 h-20 shrink-0 rounded-xl bg-cover bg-center shadow-inner" data-alt="Modern luxury living room interior with sunlight"></div>
+        <div class="flex flex-col justify-center gap-1 flex-1">
+            <h2 id="property-name" class="text-lg font-bold text-[#0d121b] dark:text-white leading-tight">Cargando...</h2>
+            <div class="flex items-start gap-1 text-[#4c669a] dark:text-slate-400">
+                <span class="material-symbols-outlined text-[16px] mt-0.5">location_on</span>
+                <p id="property-address" class="text-xs font-medium leading-tight">Cargando...</p>
+            </div>
+        </div>
+        <div class="h-8 w-8 rounded-full bg-green-50 dark:bg-green-900/30 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-green-600 dark:text-green-400 text-lg">check_circle</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="flex-1 flex flex-col items-center w-full max-w-md mx-auto px-6 pt-8 pb-10">
+    <div id="language-selector-section" class="w-full">
+        <div class="text-center mb-6">
+            <h3 id="select-lang-title" class="text-xl font-bold text-[#0d121b] dark:text-white mb-1">Cargando...</h3>
+            <p id="select-lang-desc" class="text-sm text-slate-500 dark:text-slate-400">Cargando...</p>
+        </div>
+        <div id="language-grid" class="grid grid-cols-2 gap-4 w-full mb-8"></div>
+        <button id="start-guide-btn" class="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group">
+            <span id="start-guide-text">Cargando...</span>
+            <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+    </div>
+
+    <div id="navigation-section" class="hidden w-full space-y-4">
+        <a id="nav-essentials" href="pages/essentials.html" class="nav-card">
+            <span class="nav-icon">🏠</span>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Cargando...</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            </div>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        <a id="nav-devices" href="pages/devices.html" class="nav-card">
+            <span class="nav-icon">🔌</span>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Cargando...</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            </div>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        <a id="nav-recommendations" href="pages/recommendations.html" class="nav-card">
+            <span class="nav-icon">🗺️</span>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Cargando...</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            </div>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        <a id="nav-tourism" href="pages/tourism.html" class="nav-card">
+            <span class="nav-icon">🏛️</span>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Cargando...</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            </div>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+        <a id="nav-contact" href="pages/contact.html" class="nav-card">
+            <span class="nav-icon">📞</span>
+            <div class="flex-1">
+                <h4 class="font-bold text-lg">Cargando...</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Cargando...</p>
+            </div>
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+    </div>
+
+    <div class="mt-auto pt-8 flex flex-col items-center gap-2 opacity-60">
+        <p id="host-name" class="text-xs text-center font-medium">Cargando...</p>
+        <p id="app-version" class="text-[10px] text-center uppercase tracking-widest">Cargando...</p>
+    </div>
+</div>
+
+<!-- Scripts al final – en orden correcto -->
+<script>
+    window.ROOT_PATH = './';
+</script>
+
+<!-- Primero main.js (define appState y utilidades) -->
+<script src="./js/main.js" defer></script>
+
+<!-- Después index.js (usa appState y renderiza la página) -->
+<script src="./js/index.js" defer></script>
+
+</body>
+</html>

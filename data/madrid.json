@@ -1,0 +1,93 @@
+{
+  "hero": {
+    "image": "assets/images/madrid/madrid-skyline.jpg",
+    "sloganKey": "hero_slogan",
+    "descriptionKey": "hero_description"
+  },
+  "experiences": [
+    {
+      "id": "royal-palace",
+      "nameKey": "royal_palace_name",
+      "categoryKey": "historical_landmark",
+      "descriptionKey": "royal_palace_desc",
+      "image": "assets/images/madrid/royal-palace.jpg"
+    },
+    {
+      "id": "retiro-park",
+      "nameKey": "retiro_park_name",
+      "categoryKey": "nature_leisure",
+      "descriptionKey": "retiro_park_desc",
+      "image": "assets/images/madrid/retiro-park.jpg"
+    },
+    {
+      "id": "mercado-san-miguel",
+      "nameKey": "mercado_san_miguel_name",
+      "categoryKey": "gastronomy",
+      "descriptionKey": "mercado_san_miguel_desc",
+      "image": "assets/images/madrid/mercado-san-miguel.jpg"
+    },
+    {
+      "id": "prado-museum",
+      "nameKey": "prado_museum_name",
+      "categoryKey": "art_culture",
+      "descriptionKey": "prado_museum_desc",
+      "image": "assets/images/madrid/prado-museum.jpg"
+    },
+    {
+      "id": "thyssen-museum",
+      "nameKey": "thyssen_museum_name",
+      "categoryKey": "art_culture",
+      "descriptionKey": "thyssen_museum_desc",
+      "image": "assets/images/madrid/thyssen-museum.jpg"
+    },
+    {
+      "id": "reina-sofia-museum",
+      "nameKey": "reina_sofia_name",
+      "categoryKey": "art_culture",
+      "descriptionKey": "reina_sofia_desc",
+      "image": "assets/images/madrid/reina-sofia-museum.jpg"
+    },
+    {
+      "id": "plaza-mayor",
+      "nameKey": "plaza_mayor_name",
+      "categoryKey": "historical_landmark",
+      "descriptionKey": "plaza_mayor_desc",
+      "image": "assets/images/madrid/plaza-mayor.jpg"
+    },
+    {
+      "id": "templo-debod",
+      "nameKey": "templo_debod_name",
+      "categoryKey": "historical_landmark",
+      "descriptionKey": "templo_debod_desc",
+      "image": "assets/images/madrid/templo-debod.jpg"
+    },
+    {
+      "id": "gran-via",
+      "nameKey": "gran_via_name",
+      "categoryKey": "shopping_entertainment",
+      "descriptionKey": "gran_via_desc",
+      "image": "assets/images/madrid/gran-via.jpg"
+    },
+    {
+      "id": "bernabeu-stadium",
+      "nameKey": "bernabeu_stadium_name",
+      "categoryKey": "sports",
+      "descriptionKey": "bernabeu_stadium_desc",
+      "image": "assets/images/madrid/bernabeu-stadium.jpg"
+    },
+    {
+      "id": "puerta-del-sol",
+      "nameKey": "puerta_del_sol_name",
+      "categoryKey": "historical_landmark",
+      "descriptionKey": "puerta_del_sol_desc",
+      "image": "assets/images/madrid/puerta-del-sol.jpg"
+    },
+    {
+      "id": "el-rastro-market",
+      "nameKey": "el_rastro_name", 
+      "categoryKey": "shopping_entertainment",
+      "descriptionKey": "el_rastro_desc",  
+      "image": "assets/images/madrid/el-rastro-market.jpg"
+    }
+  ]
+}
