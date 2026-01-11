@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión mejorada con zona dinámica + partners
+// js/recommendations.js - Versión mejorada con zona dinámica + partners (no-cache forzado)
 
 async function renderPage() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
@@ -119,13 +119,13 @@ async function renderPage() {
         });
     }
 
-    // Nueva sección: Partners por zona (dinámica)
+    // Nueva sección: Partners por zona (dinámica) — NO CACHE
     try {
         const zone = await getApartmentZone(apt);
         if (zone) {
             console.log('Apartamento en zona:', zone.name);
 
-            const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json`);
+            const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json`, { cache: 'no-store' });
             if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
             const allPartners = await partnersRes.json();
 
