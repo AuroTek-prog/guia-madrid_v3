@@ -1,6 +1,6 @@
 /* =====================================================
    js/essentials.js - Versión FINAL corregida y funcional
-   (Basic Auth restaurado + endpoints que funcionaban + logs + fallback)
+   (Basic Auth restaurado + updateLed dentro del scope + logs)
 ===================================================== */
 
 // CONFIG RAIXER - Restaurada exactamente como en la versión que funcionaba
@@ -23,7 +23,7 @@ function getRaixerAuthHeaders() {
     };
 }
 
-// Verificar estado (GET /devices/{id} - endpoint que funcionaba)
+// Verificar estado (GET /devices/{id})
 async function checkRaixerDeviceStatus(deviceId) {
     console.log(`[Raixer] Verificando estado del dispositivo: ${deviceId}`);
     try {
@@ -47,7 +47,7 @@ async function checkRaixerDeviceStatus(deviceId) {
     }
 }
 
-// Abrir puerta (POST /open-door/{position} - endpoint que funcionaba)
+// Abrir puerta (POST /open-door/{position})
 async function raixerOpenDoor(deviceId, position = 'street') {
     console.log(`[Raixer] Intentando abrir ${position} - deviceId: ${deviceId}`);
     try {
@@ -150,7 +150,7 @@ async function initializeEssentials() {
         const apt = apartmentsData[apartmentId];
         if (!apt) throw new Error(`Apartamento ${apartmentId} no encontrado`);
 
-        // Carga básica
+        // Carga básica (nombre, dirección, WiFi, access, rules...)
         document.title = t('essentials.title');
         safeText('page-title', t('essentials.title'));
         safeText('apartment-name', apt.name || 'Apartamento sin nombre');
@@ -180,8 +180,23 @@ async function initializeEssentials() {
 
         const deviceId = apt.raixerDevices?.deviceId;
 
+        // Función updateLed (¡la que faltaba! - ahora dentro del scope)
+        async function updateLed(led, deviceId) {
+            if (!led) return;
+            led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-yellow-500 animate-pulse'; // loading
+
+            const status = await checkRaixerDeviceStatus(deviceId);
+
+            if (status.success) {
+                led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'}`;
+            } else {
+                led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500';
+                showNotification('Estado de puerta no disponible');
+            }
+        }
+
         if (!deviceId) {
-            showNotification('Control de puertas no configurado');
+            showNotification('Control de puertas no configurado en este apartamento');
             [portalBtn, houseBtn].forEach(btn => {
                 if (btn) {
                     btn.disabled = true;
