@@ -1,4 +1,5 @@
-// js/recommendations.js - Versión completa con filtro dinámico + partners
+// js/recommendations.js - Versión completa con filtro dinámico + partners por zona
+
 let currentFilter = 'all'; // Filtro activo por defecto
 
 async function renderPage() {
@@ -32,7 +33,8 @@ async function renderPage() {
             `;
             chip.onclick = () => {
                 currentFilter = cat.key;
-                renderFilteredContent();
+                console.log('Filtro cambiado a:', currentFilter);
+                renderFilteredContent(); // Re-renderiza todo
             };
             filterContainer.appendChild(chip);
         });
@@ -65,30 +67,27 @@ async function renderPage() {
             </div>`;
     }
 
-    // Contenedor principal
-    const sectionsContainer = document.getElementById('sections-container');
-    if (sectionsContainer) sectionsContainer.innerHTML = '';
-
     // Renderizar contenido filtrado (estático + partners)
-    renderFilteredContent();
+    await renderFilteredContent();
+
+    // Configurar navegación inferior
+    setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
 
-// Función principal de renderizado filtrado
+// Función principal de renderizado filtrado (estático + partners)
 async function renderFilteredContent() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
     if (!apt) return;
     const recs = apt.recommendations || {};
     const sectionsContainer = document.getElementById('sections-container');
     if (!sectionsContainer) return;
-    sectionsContainer.innerHTML = '';
 
-    // 1️⃣ Secciones estáticas filtradas
+    sectionsContainer.innerHTML = ''; // Limpiar contenido previo
+
+    // 1️⃣ Recomendaciones estáticas filtradas
     if (recs.sections) {
         recs.sections.forEach(section => {
-            const filteredItems = section.items.filter(item => {
-                if (currentFilter === 'all') return true;
-                return item.typeKey === currentFilter;
-            });
+            const filteredItems = section.items.filter(item => currentFilter === 'all' || item.typeKey === currentFilter);
             if (filteredItems.length === 0) return;
 
             const sectionDiv = document.createElement('div');
@@ -152,11 +151,14 @@ async function renderFilteredContent() {
         });
     }
 
-    // 2️⃣ Partners por zona filtrados
+    // 2️⃣ Partners dinámicos filtrados por zona y filtro
     try {
         const zone = await getApartmentZone(apt);
         if (zone) {
-            const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json`, { cache: 'no-store' });
+            console.log('Apartamento en zona:', zone.name);
+
+            const timestamp = new Date().getTime(); // Bypass cache
+            const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
             if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
             const allPartners = await partnersRes.json();
 
@@ -189,12 +191,16 @@ async function renderFilteredContent() {
 
                 partnersSection.appendChild(partnersContainer);
                 sectionsContainer.appendChild(partnersSection);
+            } else {
+                console.log('No hay partners activos en esta zona con filtro actual');
             }
+        } else {
+            console.log('No se detectó zona para este apartamento');
         }
     } catch (err) {
-        console.error('Error cargando partners/zona:', err);
+        console.error('Error cargando partners o zonas:', err);
     }
 
-    // Navegación inferior
+    // Configurar navegación inferior
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
