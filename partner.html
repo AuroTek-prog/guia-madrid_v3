@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Partner - Aurotek Guest</title>
+    
+    <!-- Tailwind + Material Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1152d4",
+                    },
+                    fontFamily: {
+                        display: ["Manrope", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Manrope', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-primary mb-4">Panel para Partners Comerciales</h1>
+            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Ve tus locales, las zonas cubiertas y cómo se inyecta tu información en las guías de los alojamientos.
+            </p>
+        </div>
+
+        <!-- Lista dinámica de partners -->
+        <div id="partners-list" class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <!-- Las tarjetas se generan aquí automáticamente -->
+        </div>
+
+        <!-- Instrucciones para añadir nuevos partners -->
+        <div class="mt-16 p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
+            <h3 class="text-2xl font-semibold mb-6 text-center">¿Cómo añadir un nuevo partner?</h3>
+            <ol class="list-decimal pl-6 space-y-4 text-gray-700 dark:text-gray-300 text-lg">
+                <li>Crea carpeta: <code>assets/images/partners/nuevo-id/</code></li>
+                <li>Sube <strong>portada.jpg</strong> (foto principal del local)</li>
+                <li>Edita <code>data/partners.json</code>:
+                    <ul class="list-disc pl-6 mt-2">
+                        <li>Copia un bloque existente</li>
+                        <li>Cambia <code>"id"</code> a algo único (ej. "rest-003")</li>
+                        <li>Actualiza nombre, descripción, image, lat, lng, zones</li>
+                        <li>Setea <code>"active": true</code> para mostrarlo</li>
+                    </ul>
+                </li>
+                <li>Push → ¡aparece automáticamente aquí y en las guías!</li>
+            </ol>
+            <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                Tus partners se inyectan solo en guías de alojamientos en las zonas elegidas.
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>© 2026 Aurotek Guest - Guías Inteligentes para Alojamientos Turísticos</p>
+        </footer>
+    </div>
+
+    <!-- Script dinámico -->
+    <script>
+        async function loadPartners() {
+            try {
+                const [apartmentsRes, partnersRes, zonesRes] = await Promise.all([
+                    fetch('data/apartments.json'),
+                    fetch('data/partners.json'),
+                    fetch('data/zones.json')
+                ]);
+                const apartments = await apartmentsRes.json();
+                const partners = await partnersRes.json();
+                const zones = await zonesRes.json();
+
+                const list = document.getElementById('partners-list');
+                list.innerHTML = '';
+
+                partners.forEach(partner => {
+                    if (!partner.active) return; // Solo activos
+
+                    // Contar pisos en sus zonas
+                    const coveredZones = partner.zones || [];
+                    const coveredPisos = Object.values(apartments).filter(apt => {
+                        return coveredZones.includes(apt.zone);
+                    }).length;
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow';
+
+                    const bgImage = partner.image 
+                        ? `url(${partner.image})` 
+                        : 'ur[](https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
+
+                    card.innerHTML = `
+                        <div class="h-48 bg-cover bg-center" style="background-image: ${bgImage};"></div>
+                        <div class="p-6">
+                            <h2 class="text-xl font-semibold mb-2">${partner.name || 'Partner sin nombre'}</h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${partner.description || 'Descripción no disponible'}</p>
+                            <p class="text-sm font-medium mb-4">Zonas cubiertas: ${coveredZones.join(', ') || 'Ninguna'}</p>
+                            <p class="text-primary font-bold mb-4">${coveredPisos} pisos recibirán tu info</p>
+                            <a href="?apartment=example-piso&zone=${coveredZones[0] || ''}" target="_blank"
+                               class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors">
+                                Ver inyección en guía de ejemplo
+                            </a>
+                        </div>
+                    `;
+
+                    list.appendChild(card);
+                });
+
+                if (partners.length === 0) {
+                    list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No hay partners configurados. Añade en partners.json.</p>';
+                }
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                document.getElementById('partners-list').innerHTML = 
+                    '<p class="text-center text-red-600 col-span-full py-12">Error al cargar. Refresca la página.</p>';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', loadPartners);
+    </script>
+
+</body>
+</html>

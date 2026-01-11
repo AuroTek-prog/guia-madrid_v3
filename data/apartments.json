@@ -4,6 +4,9 @@
     "slug": "sol-101",
     "name": "Acogedor Apartamento en Sol",
     "address": "Calle de la Preciosa, 5, 1º 101",
+    "lat": 40.416775,
+    "lng": -3.703790,
+    "zone": "sol",
     "images": {
       "portada": "assets/images/apartments/sol-101/portada.jpg",
       "acceso": "assets/images/apartments/sol-101/acceso.jpg"
@@ -26,22 +29,10 @@
       ]
     },
     "devices": {
-      "climatizacion": {
-        "type": "central",
-        "detailsKey": "climatizacion_central"
-      },
-      "hob": {
-        "type": "ceramic",
-        "detailsKey": "hob_ceramic"
-      },
-      "washing_machine": {
-        "type": "front_load",
-        "detailsKey": "washing_machine_quick_wash"
-      },
-      "coffee_maker": {
-        "type": "nespresso",
-        "detailsKey": "coffee_maker_refill"
-      }
+      "climatzacion": { "type": "central", "detailsKey": "climatizacion_central" },
+      "hob": { "type": "ceramic", "detailsKey": "hob_ceramic" },
+      "washing_machine": { "type": "front_load", "detailsKey": "washing_machine_quick_wash" },
+      "coffee_maker": { "type": "nespresso", "detailsKey": "coffee_maker_refill" }
     },
     "recommendations": {
       "featured": {
@@ -110,6 +101,9 @@
     "slug": "granvia-205",
     "name": "Piso de Lujo en Gran Vía",
     "address": "Gran Vía, 60, 2º D",
+    "lat": 40.4208,
+    "lng": -3.7059,
+    "zone": "granvia",
     "images": {
       "portada": "assets/images/apartments/granvia-205/portada.jpg"
     },
@@ -151,7 +145,10 @@
     "id": "malasana-301",
     "slug": "malasana-301",
     "name": "Apartamento Malasaña 301",
-    "address": "Calle de Malasaña, 12, 3º 301",
+    "address": "Calle Espíritu Santo, 12, 3º 301",
+    "lat": 40.4235,
+    "lng": -3.7080,
+    "zone": "malasana",
     "images": {
       "portada": "assets/images/apartments/malasana-301/portada.jpg",
       "acceso": "assets/images/apartments/malasana-301/acceso.jpg"
@@ -192,6 +189,160 @@
         "photo": "https://lh3.googleusercontent.com/aida-public/AB6AXuAUOrgNX3RswPRXZIgUVqUgAstK1P8jkcSoCAFnNZBc-gbZlUh6fExRo-_oWcyrCjjyd05eWoQM8IsumNKv3wVkRiTOD6AhhOwdsLPIjF9vyPt85sWPYiTgYU3FfBwL2gEfUnZ8ZLlTVZ4vJNYRSATwbF13TX2uEDgpv44uidagLZX3GXKU6tq8_vegMvR0yCeOogmR-C8r6HLCDCzqKg1iD0uF3CBlWJK7tQbENDQ2nlX4mYpBTgFRU84yyaH4YcwIEJjj-OpNfA",
         "online": true,
         "availability": { "general": "09:00 - 22:00", "emergency": "24/7" }
+      }
+    }
+  },
+  "chueca-202": {
+    "id": "chueca-202",
+    "slug": "chueca-202",
+    "name": "Apartamento Chueca 202",
+    "address": "Calle Hortaleza, 45, 2º 202",
+    "lat": 40.4221,
+    "lng": -3.6998,
+    "zone": "chueca",
+    "images": {
+      "portada": "assets/images/apartments/chueca-202/portada.jpg",
+      "acceso": "assets/images/apartments/chueca-202/acceso.jpg"
+    },
+    "host": {
+      "name": "Marcos López",
+      "photo": "assets/images/apartments/chueca-202/host.jpg",
+      "phone": "+34 600 333 444"
+    },
+    "wifi": {
+      "network": "Chueca_202",
+      "password": "chueca202pass"
+    },
+    "access": {
+      "type": "keypad",
+      "code": "202Y",
+      "instructions": [
+        "Pasa la tarjeta por el lector junto a la puerta principal.",
+        "La luz verde indica que puedes entrar."
+      ]
+    },
+    "devices": {
+      "tv": { "type": "smart", "detailsKey": "tv_smart_guide" },
+      "washing_machine": { "type": "front_load", "detailsKey": "washing_machine_quick_wash" }
+    },
+    "houseRules": [
+      { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" },
+      { "icon": "bedtime", "titleKey": "rules_quiet_hours", "subtitleKey": "rules_quiet_hours_time", "color": "indigo" },
+      { "icon": "pets", "titleKey": "rules_pets_allowed", "color": "green" }
+    ],
+    "raixerDevices": { "deviceId": "4a0051000c584b5350323221" },
+    "emergency": {
+      "apartmentId": "D4",
+      "host": {
+        "name": "Marcos López",
+        "role": "Property Manager",
+        "phone": "+34 600 333 444",
+        "whatsapp": "+34 600 333 444",
+        "photo": "https://lh3.googleusercontent.com/aida-public/...",
+        "online": true,
+        "availability": { "general": "10:00 - 23:00", "emergency": "24/7" }
+      }
+    }
+  },
+  "lavapies-405": {
+    "id": "lavapies-405",
+    "slug": "lavapies-405",
+    "name": "Apartamento Lavapiés 405",
+    "address": "Calle Argumosa, 20, 4º 405",
+    "lat": 40.4085,
+    "lng": -3.7005,
+    "zone": "lavapies",
+    "images": {
+      "portada": "assets/images/apartments/lavapies-405/portada.jpg",
+      "acceso": "assets/images/apartments/lavapies-405/acceso.jpg"
+    },
+    "host": {
+      "name": "Ana García",
+      "photo": "assets/images/apartments/lavapies-405/host.jpg",
+      "phone": "+34 600 444 555"
+    },
+    "wifi": {
+      "network": "Lavapies_405",
+      "password": "lvp405wifi"
+    },
+    "access": {
+      "type": "keybox",
+      "code": "405Z",
+      "instructions": [
+        "La caja está junto al portal principal.",
+        "Introduce el código y gira la manivela."
+      ]
+    },
+    "devices": {
+      "coffee_maker": { "type": "nespresso", "detailsKey": "coffee_maker_refill" },
+      "washing_machine": { "type": "front_load", "detailsKey": "washing_machine_quick_wash" }
+    },
+    "houseRules": [
+      { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" },
+      { "icon": "recycling", "titleKey": "rules_recycle", "color": "green" }
+    ],
+    "raixerDevices": { "deviceId": "5b0062000d694b5350333223" },
+    "emergency": {
+      "apartmentId": "E5",
+      "host": {
+        "name": "Ana García",
+        "role": "Property Manager",
+        "phone": "+34 600 444 555",
+        "whatsapp": "+34 600 444 555",
+        "photo": "https://lh3.googleusercontent.com/aida-public/...",
+        "online": true,
+        "availability": { "general": "08:00 - 23:00", "emergency": "24/7" }
+      }
+    }
+  },
+  "retiro-502": {
+    "id": "retiro-502",
+    "slug": "retiro-502",
+    "name": "Apartamento Retiro 502",
+    "address": "Calle Alcalá, 120, 5º 502",
+    "lat": 40.4152,
+    "lng": -3.6865,
+    "zone": "retiro",
+    "images": {
+      "portada": "assets/images/apartments/retiro-502/portada.jpg",
+      "acceso": "assets/images/apartments/retiro-502/acceso.jpg"
+    },
+    "host": {
+      "name": "Elena Ruiz",
+      "photo": "assets/images/apartments/retiro-502/host.jpg",
+      "phone": "+34 600 555 666"
+    },
+    "wifi": {
+      "network": "Retiro_502",
+      "password": "rtr502wifi"
+    },
+    "access": {
+      "type": "keypad",
+      "code": "502W",
+      "instructions": [
+        "Usa el código en el lector digital.",
+        "La puerta se abrirá automáticamente."
+      ]
+    },
+    "devices": {
+      "tv": { "type": "smart", "detailsKey": "tv_smart_guide" },
+      "coffee_maker": { "type": "nespresso", "detailsKey": "coffee_maker_refill" }
+    },
+    "houseRules": [
+      { "icon": "pets", "titleKey": "rules_pets_allowed", "color": "green" },
+      { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" }
+    ],
+    "raixerDevices": { "deviceId": "6c0073000e7a4b5350343224" },
+    "emergency": {
+      "apartmentId": "F6",
+      "host": {
+        "name": "Elena Ruiz",
+        "role": "Property Manager",
+        "phone": "+34 600 555 666",
+        "whatsapp": "+34 600 555 666",
+        "photo": "https://lh3.googleusercontent.com/aida-public/...",
+        "online": true,
+        "availability": { "general": "10:00 - 24:00", "emergency": "24/7" }
       }
     }
   }

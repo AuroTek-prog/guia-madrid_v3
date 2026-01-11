@@ -1,5 +1,6 @@
-// js/main.js - Versión robusta que espera a renderPage
+// js/main.js - Versión robusta, completa y optimizada (enero 2026)
 
+// Estado global
 window.appState = {
     apartmentId: null,
     lang: 'es',
@@ -7,7 +8,7 @@ window.appState = {
     translations: null
 };
 
-// Función de traducción global con fallback
+// Traducción global con fallback
 window.t = function(key) {
     if (!window.appState?.translations) return `[${key}]`;
     const keys = key.split('.');
@@ -19,7 +20,7 @@ window.t = function(key) {
     return value;
 };
 
-// Copiar al portapapeles
+// Copiar al portapapeles (con fallback)
 window.copyToClipboard = function(text) {
     if (!navigator.clipboard) {
         console.warn('Clipboard API no soportado');
@@ -27,9 +28,9 @@ window.copyToClipboard = function(text) {
         return;
     }
     navigator.clipboard.writeText(text)
-        .then(() => showNotification(t('common.copied')))
+        .then(() => showNotification(t('common.copied') || 'Copiado'))
         .catch(err => {
-            console.error('Error al copiar: ', err);
+            console.error('Error al copiar:', err);
             showNotification('Error al copiar');
         });
 };
@@ -44,29 +45,25 @@ window.showNotification = function(message) {
     setTimeout(() => { if (document.body.contains(notification)) document.body.removeChild(notification); }, 2300);
 };
 
-// Navegar atrás o al inicio preservando apartment y lang
+// Navegar atrás preservando parámetros
 window.goBack = function() {
     const currentParams = new URLSearchParams(window.location.search);
     const apartmentId = currentParams.get('apartment') || 'sol-101';
     const lang = currentParams.get('lang') || 'es';
-
-    console.log('goBack() llamado - Volviendo con apartamento:', apartmentId);
-
-    // Siempre redirigir a index.html con parámetros para evitar perder apartment/lang
+    console.log('goBack() - Volviendo con apartamento:', apartmentId);
     window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
 };
 
-// Cambiar idioma
+// Cambiar idioma (preserva apartamento actual)
 window.changeLanguage = function() {
     const apartmentId = window.appState.apartmentId || 'sol-101';
     const lang = window.appState.lang || 'es';
     window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
 };
 
-// Configurar navegación inferior con parámetros apartment y lang
+// Configurar navegación inferior con parámetros
 window.setupBottomNavigation = function(apartmentId, lang) {
     const baseUrl = `?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
-
     const navMap = [
         { id: 'nav-home', href: `index.html${baseUrl}`, key: 'navigation.nav_home' },
         { id: 'nav-devices', href: `pages/devices.html${baseUrl}`, key: 'navigation.devices_title' },
@@ -78,15 +75,16 @@ window.setupBottomNavigation = function(apartmentId, lang) {
 
     navMap.forEach(({ id, href, key }) => {
         const link = document.getElementById(id);
-        if (!link) return;
-        link.href = href;
-        const span = link.querySelector('span:last-child');
-        if (span) span.textContent = (typeof t === 'function' ? t(key) : key) || key;
+        if (link) {
+            link.href = href;
+            const span = link.querySelector('span:last-child');
+            if (span) span.textContent = t(key) || key;
+        }
     });
-
-    console.log('Navegación inferior actualizada:', baseUrl);
+    console.log('Navegación inferior configurada:', baseUrl);
 };
 
+// Inicialización principal
 async function initializeApp() {
     const params = new URLSearchParams(window.location.search);
     window.appState.apartmentId = params.get('apartment') || 'sol-101';
@@ -103,15 +101,16 @@ async function initializeApp() {
         window.appState.apartmentData = await apartmentRes.json();
         window.appState.translations = await translationsRes.json();
 
+        // Validar apartamento solicitado
         if (!window.appState.apartmentData[window.appState.apartmentId]) {
-            console.warn('Apartamento no encontrado → default sol-101');
+            console.warn(`Apartamento "${window.appState.apartmentId}" no encontrado → usando default`);
             window.appState.apartmentId = 'sol-101';
             if (!window.appState.apartmentData['sol-101']) throw new Error('Default sol-101 no existe');
         }
 
         document.documentElement.lang = window.appState.lang;
 
-        // Esperar a que renderPage exista (de index.js)
+        // Esperar a renderPage (de index.js)
         const wait = setInterval(() => {
             if (typeof renderPage === 'function') {
                 clearInterval(wait);
@@ -119,8 +118,7 @@ async function initializeApp() {
             }
         }, 100);
 
-        // Timeout de seguridad
-        setTimeout(() => clearInterval(wait), 5000);
+        setTimeout(() => clearInterval(wait), 5000); // Timeout seguridad
 
     } catch (error) {
         console.error("Error inicializando app:", error);
@@ -130,7 +128,7 @@ async function initializeApp() {
                 <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
                     Parece que hay un problema con los datos o la conexión. Intenta refrescar o contacta al anfitrión.
                 </p>
-                <a href="index.html?apartment=${window.appState.apartmentId}&lang=${window.appState.lang}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
+                <a href="index.html?apartment=${window.appState.apartmentId || 'sol-101'}&lang=${window.appState.lang || 'es'}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
                     Volver al inicio
                 </a>
             </div>`;
@@ -138,3 +136,64 @@ async function initializeApp() {
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// =====================================================
+// Zona del apartamento (Turf.js) - versión mejorada
+// =====================================================
+let __zonesCache = null;
+
+// Función para detectar la zona del apartamento
+async function getApartmentZone(apartment) {
+    if (!apartment || typeof apartment !== 'object' || !apartment.lat || !apartment.lng) {
+        console.warn('getApartmentZone: apartamento inválido o sin coordenadas');
+        return null;
+    }
+
+    const lat = Number(apartment.lat);
+    const lng = Number(apartment.lng);
+    if (isNaN(lat) || isNaN(lng)) {
+        console.warn('Coordenadas inválidas:', apartment);
+        return null;
+    }
+
+    try {
+        // Cargar zonas solo una vez
+        if (!__zonesCache) {
+            const zonesRes = await fetch(`${window.ROOT_PATH}data/zones.json`);
+            if (!zonesRes.ok) throw new Error('No se pudo cargar zones.json');
+            __zonesCache = await zonesRes.json();
+            if (!Array.isArray(__zonesCache)) {
+                throw new Error('zones.json no es un array válido');
+            }
+            console.log('Zonas cargadas:', __zonesCache.length);
+        }
+
+        const point = turf.point([lng, lat]);
+
+        for (const zone of __zonesCache) {
+            if (!zone || !Array.isArray(zone.polygon) || zone.polygon.length < 3) {
+                console.warn('Zona inválida ignorada:', zone);
+                continue;
+            }
+
+            let coords = zone.polygon.map(p => [Number(p[0]), Number(p[1])]);
+            const first = coords[0];
+            const last = coords[coords.length - 1];
+            if (first[0] !== last[0] || first[1] !== last[1]) {
+                coords = [...coords, first];
+            }
+
+            const polygon = turf.polygon([coords]);
+            if (turf.booleanPointInPolygon(point, polygon)) {
+                console.log('Zona detectada:', zone.name || zone.id);
+                return zone;
+            }
+        }
+
+        console.log('No se encontró zona para el apartamento:', apartment);
+        return null;
+    } catch (err) {
+        console.error('Error detectando zona:', err);
+        return null;
+    }
+}
