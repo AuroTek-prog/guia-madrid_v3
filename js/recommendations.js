@@ -1,4 +1,5 @@
-// js/recommendations.js - Versión mejorada con zona dinámica + partners (no-cache forzado)
+// js/recommendations.js - Versión completa con filtro dinámico + partners
+let currentFilter = 'all'; // Filtro activo por defecto
 
 async function renderPage() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
@@ -14,19 +15,30 @@ async function renderPage() {
     safeText('headline', t('recommendations.title'));
     safeText('subtitle', t('recommendations.subtitle'));
 
-    // Filtros de categorías (mantengo tu código original)
+    // Renderizar chips de filtro
     const filterContainer = document.getElementById('filter-chips');
     if (filterContainer && recs.categories) {
         filterContainer.innerHTML = '';
         recs.categories.forEach(cat => {
             const chip = document.createElement('div');
-            chip.className = `snap-start flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full ${cat.key === 'all' ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800'} px-5 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 cursor-pointer transition-all active:scale-95`;
-            chip.innerHTML = `<span class="material-symbols-outlined text-[18px]">${cat.icon}</span><p class="text-sm ${cat.key === 'all' ? 'font-semibold' : 'font-medium'} leading-normal">${t(`recommendations.filters.${cat.key}`)}</p>`;
+            chip.className = `snap-start flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 border border-transparent cursor-pointer transition-all active:scale-95 ${
+                cat.key === currentFilter 
+                    ? 'bg-primary text-white font-semibold' 
+                    : 'bg-gray-100 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700'
+            }`;
+            chip.innerHTML = `
+                <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
+                <p class="text-sm leading-normal">${t(`recommendations.filters.${cat.key}`)}</p>
+            `;
+            chip.onclick = () => {
+                currentFilter = cat.key;
+                renderFilteredContent();
+            };
             filterContainer.appendChild(chip);
         });
     }
 
-    // Featured (mantengo tu código)
+    // Featured
     const featuredContainer = document.getElementById('featured-item');
     if (featuredContainer && recs.featured) {
         const featured = recs.featured;
@@ -53,18 +65,39 @@ async function renderPage() {
             </div>`;
     }
 
-    // Secciones estáticas (tu código original)
+    // Contenedor principal
     const sectionsContainer = document.getElementById('sections-container');
-    if (sectionsContainer && recs.sections) {
-        sectionsContainer.innerHTML = '';
+    if (sectionsContainer) sectionsContainer.innerHTML = '';
+
+    // Renderizar contenido filtrado (estático + partners)
+    renderFilteredContent();
+}
+
+// Función principal de renderizado filtrado
+async function renderFilteredContent() {
+    const apt = window.appState.apartmentData?.[window.appState.apartmentId];
+    if (!apt) return;
+    const recs = apt.recommendations || {};
+    const sectionsContainer = document.getElementById('sections-container');
+    if (!sectionsContainer) return;
+    sectionsContainer.innerHTML = '';
+
+    // 1️⃣ Secciones estáticas filtradas
+    if (recs.sections) {
         recs.sections.forEach(section => {
+            const filteredItems = section.items.filter(item => {
+                if (currentFilter === 'all') return true;
+                return item.typeKey === currentFilter;
+            });
+            if (filteredItems.length === 0) return;
+
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'pt-6';
             let sectionHTML = `<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">${t(`recommendations.${section.titleKey}`)}</h3>`;
             const itemsContainer = document.createElement('div');
             itemsContainer.className = section.titleKey === 'essentials_title' ? 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4' : 'flex flex-col gap-4';
 
-            section.items.forEach(item => {
+            filteredItems.forEach(item => {
                 if (section.titleKey === 'transport_title') {
                     itemsContainer.innerHTML += `
                         <div class="bg-gray-50 dark:bg-[#151c2b] rounded-xl p-4 flex gap-4 items-start border border-gray-100 dark:border-gray-800">
@@ -119,17 +152,19 @@ async function renderPage() {
         });
     }
 
-    // Nueva sección: Partners por zona (dinámica) — NO CACHE
+    // 2️⃣ Partners por zona filtrados
     try {
         const zone = await getApartmentZone(apt);
         if (zone) {
-            console.log('Apartamento en zona:', zone.name);
-
             const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json`, { cache: 'no-store' });
             if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
             const allPartners = await partnersRes.json();
 
-            const visiblePartners = allPartners.filter(p => p.zones?.includes(zone.id) && p.active !== false);
+            const visiblePartners = allPartners.filter(p => {
+                const inZone = p.zones?.includes(zone.id);
+                const inCategory = currentFilter === 'all' || p.categoryKey === currentFilter;
+                return inZone && inCategory && p.active !== false;
+            });
 
             if (visiblePartners.length > 0) {
                 const partnersSection = document.createElement('div');
@@ -148,23 +183,18 @@ async function renderPage() {
                             <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description}</p>
                             <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
-                        </div>
-                    `;
+                        </div>`;
                     partnersContainer.appendChild(card);
                 });
 
                 partnersSection.appendChild(partnersContainer);
                 sectionsContainer.appendChild(partnersSection);
-            } else {
-                console.log('No hay partners activos en esta zona');
             }
-        } else {
-            console.log('No se detectó zona para este apartamento');
         }
     } catch (err) {
-        console.error('Error cargando partners o zonas:', err);
+        console.error('Error cargando partners/zona:', err);
     }
 
-    // Configurar navegación inferior
+    // Navegación inferior
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
