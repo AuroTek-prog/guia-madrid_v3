@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión FINAL con filtro dinámico + partners por zona + fallbacks
+// js/recommendations.js - Versión FINAL con filtro dinámico + partners por zona + fallbacks robustos
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
@@ -90,7 +90,6 @@ async function renderFilteredContent() {
 
     sectionsContainer.innerHTML = ''; // Limpiar
 
-    // Mostrar fallback si no hay nada
     let hasContent = false;
 
     // 1. Recomendaciones estáticas filtradas
@@ -126,26 +125,26 @@ async function renderFilteredContent() {
                     const card = document.createElement('div');
                     card.className = 'snap-start w-40 shrink-0 flex flex-col';
                     card.innerHTML = `
-                        <div class="h-28 w-full bg-center bg-no-repeat bg-cover rounded-xl mb-3 relative overflow-hidden" style="background-image: url('${item.image}');">
+                        <div class="h-28 w-full bg-center bg-no-repeat bg-cover rounded-xl mb-3 relative overflow-hidden" style="background-image: url('${item.image || "https://via.placeholder.com/150"}');">
                             <div class="absolute inset-0 bg-black/10"></div>
                             <div class="absolute bottom-2 left-2 bg-white/90 dark:bg-black/70 backdrop-blur-sm px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                                <span class="text-[10px] font-bold text-gray-900 dark:text-white">${item.distance}</span>
+                                <span class="text-[10px] font-bold text-gray-900 dark:text-white">${item.distance || 'N/A'}</span>
                             </div>
                         </div>
                         <h4 class="text-gray-900 dark:text-white font-bold text-sm truncate">${item.name}</h4>
-                        <p class="text-gray-500 dark:text-gray-400 text-xs">${t(`recommendations.types.${item.typeKey}`)}</p>`;
+                        <p class="text-gray-500 dark:text-gray-400 text-xs">${t(`recommendations.types.${item.typeKey || 'unknown'}`)}</p>`;
                     itemsContainer.appendChild(card);
                 } else {
                     const listItem = document.createElement('div');
                     listItem.className = 'flex gap-4 items-center mb-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-gray-100 dark:border-gray-800 bg-white dark:bg-[#151c2b] shadow-sm';
                     listItem.innerHTML = `
-                        <div class="w-20 h-20 shrink-0 bg-center bg-no-repeat bg-cover rounded-lg" style="background-image: url('${item.image}');"></div>
+                        <div class="w-20 h-20 shrink-0 bg-center bg-no-repeat bg-cover rounded-lg" style="background-image: url('${item.image || "https://via.placeholder.com/100"}');"></div>
                         <div class="flex-1 min-w-0">
                             <h4 class="text-gray-900 dark:text-white font-bold text-base truncate">${item.name}</h4>
-                            <p class="text-gray-500 dark:text-gray-400 text-xs mb-1">${t(`recommendations.types.${item.typeKey}`)} • ${item.priceRange}</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mb-1">${t(`recommendations.types.${item.typeKey || 'unknown'}`)} • ${item.priceRange || 'N/A'}</p>
                             <div class="flex items-center gap-1 text-primary text-xs font-semibold">
                                 <span class="material-symbols-outlined text-[14px]">directions_walk</span>
-                                <span>${item.distance}</span>
+                                <span>${item.distance || 'N/A'}</span>
                             </div>
                         </div>
                         <button class="shrink-0 size-8 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary hover:text-white transition-colors">
@@ -167,7 +166,7 @@ async function renderFilteredContent() {
         if (zone) {
             console.log('Apartamento en zona:', zone.name);
 
-            const timestamp = new Date().getTime();
+            const timestamp = new Date().getTime(); // Bypass cache
             const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
             if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
             const allPartners = await partnersRes.json();
