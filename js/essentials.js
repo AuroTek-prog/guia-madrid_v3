@@ -1,5 +1,6 @@
 /* =====================================================
    js/essentials.js - Versión final segura y robusta
+   (Raixer Variante recomendada 1, lista para usar)
 ===================================================== */
 
 async function initializeEssentials() {
@@ -43,35 +44,49 @@ async function initializeEssentials() {
         return value;
     }
 
+    // =====================================================
+    // RAIXER - Variante recomendada 1
+    // =====================================================
+
+    function getRaixerAuthHeaders() {
+        return {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${window.appState?.raixerToken || ''}`
+        };
+    }
+
     async function checkRaixerDeviceStatus(deviceId) {
         try {
-            const res = await fetch(`/api/raixer/status?deviceId=${deviceId}`);
-            if (!res.ok) throw new Error(`Error ${res.status}`);
-            const json = await res.json();
-            return { online: json.online, success: true };
-        } catch (err) {
-            console.error('Error verificando dispositivo:', err);
-            return { online: false, success: false, error: err.message };
+            const response = await fetch(`${RAIXER_API.baseUrl}/devices/${deviceId}/status`, {
+                method: 'GET',
+                headers: getRaixerAuthHeaders()
+            });
+            if (!response.ok) throw new Error(`Error ${response.status}`);
+            const device = await response.json();
+            return { online: device.online || device.status === 'online', success: true };
+        } catch (error) {
+            console.error('Error verificando:', error);
+            return { online: false, success: false, error: error.message };
         }
     }
 
-    async function raixerOpenDoor(deviceId, position) {
+    async function raixerOpenDoor(deviceId, position = 'main') {
         try {
-            const res = await fetch(`/api/raixer/open-door`, {
+            const response = await fetch(`${RAIXER_API.baseUrl}/devices/${deviceId}/unlock`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ deviceId, position })
+                headers: getRaixerAuthHeaders(),
+                body: JSON.stringify({ action: 'open', position })
             });
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Raixer error ${res.status}: ${text}`);
+            if (!response.ok) {
+                const text = await response.text();
+                throw new Error(`Raixer error ${response.status}: ${text}`);
             }
-            const result = await res.json();
-            const allSuccessful = result.every(door => door.status === 'success');
-            return { success: allSuccessful, result };
-        } catch (err) {
-            console.error('❌ Error abriendo puerta:', err);
-            return { success: false, error: err.message };
+            const result = await response.json();
+            console.log('Puerta abierta:', result);
+            return { success: true, result };
+        } catch (error) {
+            console.error('Error abriendo:', error);
+            return { success: false, error: error.message };
         }
     }
 
@@ -85,6 +100,10 @@ async function initializeEssentials() {
             led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-gray-500';
         }
     }
+
+    // =====================================================
+    // Inicialización principal
+    // =====================================================
 
     try {
         const [apartmentsRes, translationsRes] = await Promise.all([
@@ -201,13 +220,13 @@ async function initializeEssentials() {
         } else {
             window.openPortalDoor = async () => {
                 showNotification('Abriendo portal...');
-                const result = await raixerOpenDoor(deviceId, 'street');
+                const result = await raixerOpenDoor(deviceId, 'main');
                 showNotification(result.success ? 'Portal abierto correctamente' : `Error: ${result.error}`);
                 updateLed(portalLed, deviceId);
             };
             window.openHouseDoor = async () => {
                 showNotification('Abriendo puerta de la casa...');
-                const result = await raixerOpenDoor(deviceId, 'home');
+                const result = await raixerOpenDoor(deviceId, 'main');
                 showNotification(result.success ? 'Puerta de la casa abierta correctamente' : `Error: ${result.error}`);
                 updateLed(houseLed, deviceId);
             };
