@@ -1,4 +1,4 @@
-// js/index.js - Lógica principal de la home - Versión robusta, segura y con logs para depurar
+// js/index.js - Lógica principal de la home - Versión FINAL robusta, segura y con logs
 
 // Fallback temporal para t() (por si main.js tarda)
 window.t = window.t || function(key) {
@@ -8,7 +8,7 @@ window.t = window.t || function(key) {
 let currentLang = 'es';
 
 function renderPage() {
-    console.log('renderPage() iniciado');  // Log 0
+    console.log('renderPage() iniciado'); // Log 0
 
     // Esperar a que t() y traducciones estén listas
     if (typeof window.t !== 'function' || !window.appState?.translations) {
@@ -18,7 +18,7 @@ function renderPage() {
     }
 
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
-    console.log('Datos de apartamento cargados:', apt);  // Log 1
+    console.log('Datos de apartamento cargados:', apt); // Log 1
 
     if (!apt) {
         console.error('No hay datos de apartamento disponibles');
@@ -32,13 +32,13 @@ function renderPage() {
     }
 
     currentLang = window.appState.lang;
-    console.log('Idioma actual:', currentLang);  // Log 2
+    console.log('Idioma actual:', currentLang); // Log 2
 
     // Hero
     const heroImage = document.getElementById('hero-image');
     if (heroImage && apt.images?.portada) {
         heroImage.style.backgroundImage = `url(${apt.images.portada})`;
-        console.log('Hero image asignada:', apt.images.portada);  // Log 3
+        console.log('Hero image asignada:', apt.images.portada); // Log 3
     }
 
     document.getElementById('hero-subtitle').textContent = t('index.hero_subtitle');
@@ -49,7 +49,7 @@ function renderPage() {
     const thumbnail = document.getElementById('property-thumbnail');
     if (thumbnail && apt.images?.portada) {
         thumbnail.style.backgroundImage = `url(${apt.images.portada})`;
-        console.log('Thumbnail asignada:', apt.images.portada);  // Log 4
+        console.log('Thumbnail asignada:', apt.images.portada); // Log 4
     }
 
     document.getElementById('property-name').textContent = apt.name || 'Apartamento sin nombre';
@@ -121,7 +121,7 @@ function renderPage() {
 }
 
 function startGuide() {
-    console.log('¡Botón Comenzar guía pulsado!');  // Log clave
+    console.log('¡Botón Comenzar guía pulsado!');  // Log clave - debe aparecer al pulsar
     console.log('Estado actual:', window.appState);
 
     const langSection = document.getElementById('language-selector-section');
@@ -152,43 +152,46 @@ function changeLanguage(lang) {
     window.location.href = url.toString();
 }
 
-function setupBottomNavigation(apartmentId, lang) {
-    console.log('setupBottomNavigation() iniciado'); // Log inicio
-
-    const basePath = window.ROOT_PATH || './'; // raíz del repo
+// Configuración robusta de navegación (rutas relativas + preservación de parámetros)
+window.setupBottomNavigation = function(apartmentId, lang) {
+    console.log('setupBottomNavigation iniciado'); // Log
     const baseUrl = `?apartment=${apartmentId}&lang=${lang}`;
-    console.log('basePath:', basePath, 'baseUrl:', baseUrl);
 
-    const navHome = document.getElementById('nav-home');
-    const navDevices = document.getElementById('nav-devices');
-    const navRecommendations = document.getElementById('nav-recommendations');
-    const navTourism = document.getElementById('nav-tourism');
-    const navContact = document.getElementById('nav-contact');
+    const navMap = {
+        'nav-home': `index.html${baseUrl}`,
+        'nav-devices': `pages/devices.html${baseUrl}`,
+        'nav-recommendations': `pages/recommendations.html${baseUrl}`,
+        'nav-tourism': `pages/tourism.html${baseUrl}`,
+        'nav-contact': `pages/contact.html${baseUrl}`,
+        'nav-essentials': `pages/essentials.html${baseUrl}` // si existe
+    };
 
-    if (navHome) navHome.href = `${basePath}index.html${baseUrl}`;
-    if (navDevices) navDevices.href = `${basePath}pages/devices.html${baseUrl}`;
-    if (navRecommendations) navRecommendations.href = `${basePath}pages/recommendations.html${baseUrl}`;
-    if (navTourism) navTourism.href = `${basePath}pages/tourism.html${baseUrl}`;
-    if (navContact) navContact.href = `${basePath}pages/contact.html${baseUrl}`;
-
-    console.log('URLs de navegación configuradas:', {
-        home: navHome?.href,
-        devices: navDevices?.href,
-        recommendations: navRecommendations?.href,
-        tourism: navTourism?.href,
-        contact: navContact?.href
+    Object.entries(navMap).forEach(([id, href]) => {
+        const link = document.getElementById(id);
+        if (link) {
+            link.href = href;
+            console.log(`Enlace ${id} configurado a: ${href}`);
+        } else {
+            console.warn(`Elemento ${id} no encontrado`);
+        }
     });
+    console.log('setupBottomNavigation completado');
+};
 
-    console.log('setupBottomNavigation() completado'); // Log fin
-}
-
-// Asignar evento al botón de forma programática (¡mejor que onclick inline!)
-document.addEventListener('DOMContentLoaded', () => {
+// Asignación robusta del botón "Comenzar guía" (con reintentos)
+function assignStartButton() {
     const startBtn = document.getElementById('start-guide-btn');
     if (startBtn) {
+        // Remueve listeners previos para evitar duplicados
+        startBtn.removeEventListener('click', startGuide);
         startBtn.addEventListener('click', startGuide);
-        console.log('Evento click asignado al botón Comenzar guía'); // Log 8
+        console.log('Evento click asignado CORRECTAMENTE al botón Comenzar guía');
     } else {
-        console.warn('No se encontró el botón #start-guide-btn');
+        console.warn('Botón #start-guide-btn no encontrado - reintentando en 500ms');
+        setTimeout(assignStartButton, 500);
     }
-});
+}
+
+// Ejecutar asignación inmediatamente y con reintentos
+assignStartButton();
+setTimeout(assignStartButton, 1000); // reintento extra por seguridad

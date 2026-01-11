@@ -44,21 +44,23 @@ window.showNotification = function(message) {
     setTimeout(() => { if (document.body.contains(notification)) document.body.removeChild(notification); }, 2300);
 };
 
-// Navegar atrás sin perder parámetros
+// Navegar atrás o al inicio preservando apartment y lang
 window.goBack = function() {
-    const params = new URLSearchParams(window.location.search);
-    const apartmentId = params.get('apartment') || 'sol-101';
-    const lang = params.get('lang') || 'es';
-    if (!window.location.pathname.endsWith('index.html')) {
-        window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
-    } else {
-        history.back();
-    }
+    const currentParams = new URLSearchParams(window.location.search);
+    const apartmentId = currentParams.get('apartment') || 'sol-101';
+    const lang = currentParams.get('lang') || 'es';
+
+    console.log('goBack() llamado - Volviendo con apartamento:', apartmentId);
+
+    // Siempre redirigir a index.html con parámetros para evitar perder apartment/lang
+    window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
 };
 
 // Cambiar idioma
 window.changeLanguage = function() {
-    window.location.href = `${window.ROOT_PATH}index.html`;
+    const apartmentId = window.appState.apartmentId || 'sol-101';
+    const lang = window.appState.lang || 'es';
+    window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
 };
 
 // Configurar navegación inferior con parámetros apartment y lang
@@ -128,7 +130,7 @@ async function initializeApp() {
                 <p class="text-gray-600 dark:text-gray-300 mb-6 max-w-md">
                     Parece que hay un problema con los datos o la conexión. Intenta refrescar o contacta al anfitrión.
                 </p>
-                <a href="index.html" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
+                <a href="index.html?apartment=${window.appState.apartmentId}&lang=${window.appState.lang}" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">
                     Volver al inicio
                 </a>
             </div>`;
