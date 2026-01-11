@@ -35,7 +35,7 @@ async function renderPage() {
             chip.onclick = () => {
                 currentFilter = cat.key;
                 console.log('Filtro cambiado a:', currentFilter);
-                renderFilteredContent(); // Re-renderiza todo
+                renderFilteredContent();
             };
             filterContainer.appendChild(chip);
         });
@@ -73,10 +73,7 @@ async function renderPage() {
         }
     }
 
-    // Renderizar contenido filtrado (estático + partners)
     await renderFilteredContent();
-
-    // Configurar navegación inferior
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
 
@@ -88,8 +85,7 @@ async function renderFilteredContent() {
     const sectionsContainer = document.getElementById('sections-container');
     if (!sectionsContainer) return;
 
-    sectionsContainer.innerHTML = ''; // Limpiar
-
+    sectionsContainer.innerHTML = '';
     let hasContent = false;
 
     // 1. Recomendaciones estáticas filtradas
@@ -160,54 +156,80 @@ async function renderFilteredContent() {
         });
     }
 
-    // 2. Partners dinámicos filtrados por zona y categoría actual
+    // 2. PARTNERS — BLOQUE FINAL ROBUSTO
     try {
+        console.log('Intentando cargar partners...');
+
         const zone = await getApartmentZone(apt);
-        if (zone) {
-            console.log('Apartamento en zona:', zone.name);
+        if (zone) console.log('Apartamento en zona:', zone.name);
+        else console.warn('No se pudo determinar la zona del apartamento');
 
-            const timestamp = new Date().getTime(); // Bypass cache
-            const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
-            if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
-            const allPartners = await partnersRes.json();
+        const timestamp = new Date().getTime();
+        const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
+        console.log('Fetch partners status:', partnersRes.status);
 
-            const visiblePartners = allPartners.filter(p => {
-                const inZone = p.zones?.includes(zone.id);
-                const inCategory = currentFilter === 'all' || p.categoryKey === currentFilter;
-                return inZone && inCategory && p.active !== false;
+        if (!partnersRes.ok) {
+            console.error('Fetch partners falló:', partnersRes.statusText);
+            throw new Error('No se pudo cargar partners.json');
+        }
+
+        const allPartners = await partnersRes.json();
+        console.log('Partners total cargados:', allPartners.length);
+        console.log('Partners globales:', allPartners.filter(p => p.global === true).map(p => p.name));
+
+        const globalPartners = allPartners.filter(p => p.global === true && p.active !== false);
+        console.log('Partners globales detectados:', globalPartners.map(p => p.name));
+
+        const zonePartners = zone
+            ? allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false)
+            : [];
+
+        const visiblePartners = [
+            ...globalPartners.filter(p => currentFilter === 'all' || p.categoryKey === currentFilter),
+            ...zonePartners.filter(p => currentFilter === 'all' || p.categoryKey === currentFilter)
+        ];
+
+        console.log('Partners visibles finales:', visiblePartners.length, visiblePartners.map(p => p.name));
+
+        if (visiblePartners.length > 0) {
+            hasContent = true;
+
+            const partnersSection = document.createElement('div');
+            partnersSection.className = 'pt-8';
+            partnersSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas y recomendaciones locales</h3>`;
+
+            const partnersContainer = document.createElement('div');
+            partnersContainer.className = 'grid gap-6 md:grid-cols-2';
+
+            visiblePartners.forEach(partner => {
+                console.log('Render partner:', partner.name);
+
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow';
+
+                card.innerHTML = `
+                    <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
+                    <div class="p-5">
+                        <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
+                        <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
+                        ${partner.global ? '<p class="text-xs text-purple-600 mt-1 font-medium">Premium - Visible en todas las guías</p>' : ''}
+                    </div>
+                `;
+
+                partnersContainer.appendChild(card);
             });
 
-            if (visiblePartners.length > 0) {
-                hasContent = true;
-                const partnersSection = document.createElement('div');
-                partnersSection.className = 'pt-8';
-                partnersSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas y recomendaciones locales en ${zone.name}</h3>`;
-
-                const partnersContainer = document.createElement('div');
-                partnersContainer.className = 'grid gap-6 md:grid-cols-2';
-
-                visiblePartners.forEach(partner => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow';
-                    card.innerHTML = `
-                        <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
-                        <div class="p-5">
-                            <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
-                            <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
-                        </div>`;
-                    partnersContainer.appendChild(card);
-                });
-
-                partnersSection.appendChild(partnersContainer);
-                sectionsContainer.appendChild(partnersSection);
-            }
+            partnersSection.appendChild(partnersContainer);
+            sectionsContainer.appendChild(partnersSection);
+        } else {
+            console.log('No hay partners visibles con filtro actual');
         }
     } catch (err) {
         console.error('Error cargando partners o zonas:', err);
     }
 
-    // Fallback visual si no hay NADA (estático ni partners)
+    // Fallback visual global
     if (!hasContent) {
         const noContent = document.createElement('div');
         noContent.className = 'pt-8 text-center text-gray-500 dark:text-gray-400';
@@ -218,6 +240,5 @@ async function renderFilteredContent() {
         sectionsContainer.appendChild(noContent);
     }
 
-    // Configurar navegación inferior
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
