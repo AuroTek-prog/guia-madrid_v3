@@ -61,24 +61,28 @@ window.changeLanguage = function() {
     window.location.href = `${window.ROOT_PATH}index.html`;
 };
 
-// Configurar navegación inferior
+// Configurar navegación inferior con parámetros apartment y lang
 window.setupBottomNavigation = function(apartmentId, lang) {
-    const baseUrl = `?apartment=${apartmentId}&lang=${lang}`;
+    const baseUrl = `?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
+
     const navMap = [
         { id: 'nav-home', href: `index.html${baseUrl}`, key: 'navigation.nav_home' },
-        { id: 'nav-devices', href: `devices.html${baseUrl}`, key: 'navigation.devices_title' },
-        { id: 'nav-recommendations', href: `recommendations.html${baseUrl}`, key: 'navigation.recommendations_title' },
-        { id: 'nav-tourism', href: `tourism.html${baseUrl}`, key: 'navigation.tourism_title' },
-        { id: 'nav-contact', href: `contact.html${baseUrl}`, key: 'navigation.contact_title' }
+        { id: 'nav-devices', href: `pages/devices.html${baseUrl}`, key: 'navigation.devices_title' },
+        { id: 'nav-recommendations', href: `pages/recommendations.html${baseUrl}`, key: 'navigation.recommendations_title' },
+        { id: 'nav-tourism', href: `pages/tourism.html${baseUrl}`, key: 'navigation.tourism_title' },
+        { id: 'nav-contact', href: `pages/contact.html${baseUrl}`, key: 'navigation.contact_title' },
+        { id: 'nav-essentials', href: `pages/essentials.html${baseUrl}`, key: 'navigation.essentials_title' }
     ];
+
     navMap.forEach(({ id, href, key }) => {
-        const nav = document.getElementById(id);
-        if (nav) {
-            nav.href = href;
-            const span = nav.querySelector('span:last-child');
-            if (span) span.textContent = t(key) || key;
-        }
+        const link = document.getElementById(id);
+        if (!link) return;
+        link.href = href;
+        const span = link.querySelector('span:last-child');
+        if (span) span.textContent = (typeof t === 'function' ? t(key) : key) || key;
     });
+
+    console.log('Navegación inferior actualizada:', baseUrl);
 };
 
 async function initializeApp() {
