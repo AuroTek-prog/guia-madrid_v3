@@ -1,4 +1,4 @@
-// js/index.js - Lógica principal de la home - Versión robusta y segura
+// js/index.js - Lógica principal de la home - Versión robusta, segura y con logs
 
 // Fallback temporal para t() (por si main.js tarda)
 window.t = window.t || function(key) { return `[${key}]`; };
@@ -6,6 +6,8 @@ window.t = window.t || function(key) { return `[${key}]`; };
 let currentLang = 'es';
 
 function renderPage() {
+    console.log('renderPage() iniciado');  // Log 0: inicio renderPage
+
     // Esperar a que t() y traducciones estén disponibles
     if (typeof window.t !== 'function' || !window.appState?.translations) {
         console.warn('t() o traducciones no listas → reintentando en 100ms');
@@ -14,6 +16,8 @@ function renderPage() {
     }
 
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
+    console.log('Datos de apartamento cargados:', apt);  // Log 1: ver apartmentData
+
     if (!apt) {
         console.error('No hay datos de apartamento disponibles');
         document.body.innerHTML = `
@@ -26,16 +30,25 @@ function renderPage() {
     }
 
     currentLang = window.appState.lang;
+    console.log('Idioma actual:', currentLang);  // Log 2
 
     // Hero
     const heroImage = document.getElementById('hero-image');
-    if (heroImage && apt.images?.portada) heroImage.style.backgroundImage = `url(${apt.images.portada})`;
+    if (heroImage && apt.images?.portada) {
+        heroImage.style.backgroundImage = `url(${apt.images.portada})`;
+        console.log('Hero image asignada:', apt.images.portada);  // Log 3
+    }
+
     document.getElementById('hero-subtitle').textContent = t('index.hero_subtitle');
     document.getElementById('welcome-title').innerHTML = `${t('index.welcome_title')} <br/><span class="font-bold">${t('index.welcome_bold')}</span>`;
 
     // Tarjeta flotante
     const thumbnail = document.getElementById('property-thumbnail');
-    if (thumbnail && apt.images?.portada) thumbnail.style.backgroundImage = `url(${apt.images.portada})`;
+    if (thumbnail && apt.images?.portada) {
+        thumbnail.style.backgroundImage = `url(${apt.images.portada})`;
+        console.log('Thumbnail asignada:', apt.images.portada);  // Log 4
+    }
+
     document.getElementById('property-name').textContent = apt.name || 'Apartamento sin nombre';
     document.getElementById('property-address').textContent = apt.address || 'Dirección no disponible';
 
@@ -58,16 +71,19 @@ function renderPage() {
             const isSelected = lang.code === currentLang;
             const button = document.createElement('button');
             button.className = `group relative flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-white dark:bg-[#1e2736] ${isSelected ? 'border-2 border-primary/10 dark:border-primary/30' : 'border border-transparent hover:border-primary/30 dark:hover:border-primary/50'} shadow-sm hover:shadow-md transition-all duration-300 ring-2 ring-transparent focus:ring-primary/20`;
-            button.onclick = () => changeLanguage(lang.code);
+            button.onclick = () => {
+                console.log(`Idioma seleccionado: ${lang.code}`); // Log 5: click idioma
+                changeLanguage(lang.code);
+            };
             button.innerHTML = `
                 <div class="w-10 h-10 rounded-full ${isSelected ? 'bg-primary/10 dark:bg-primary/20' : 'bg-[#f8f9fc] dark:bg-slate-700'} flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
                     ${lang.flag}
                 </div>
                 <span class="text-sm font-semibold ${isSelected ? 'text-[#0d121b] dark:text-white' : 'text-[#0d121b] dark:text-white group-hover:text-primary dark:group-hover:text-primary-400'}">${t(lang.name)}</span>
-                ${isSelected ? `<div class="absolute top-3 right-3"><span class="material-symbols-outlined text-primary text-sm">radio_button_checked</span></div>` : ''}
-            `;
+                ${isSelected ? `<div class="absolute top-3 right-3"><span class="material-symbols-outlined text-primary text-sm">radio_button_checked</span></div>` : ''}`;
             languageGrid.appendChild(button);
         });
+        console.log('Botones de idioma renderizados'); // Log 6
     }
 
     // Footer
@@ -91,12 +107,14 @@ function renderPage() {
             if (p) p.textContent = t(descKey);
         }
     });
+    console.log('Navegación renderizada'); // Log 7
 
     // Asignar evento al botón de forma programática (mejor que onclick inline)
     document.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-guide-btn');
         if (startBtn) {
             startBtn.addEventListener('click', startGuide);
+            console.log('Evento click startGuide asignado'); // Log 8
         } else {
             console.warn('Botón start-guide-btn no encontrado');
         }
@@ -104,14 +122,36 @@ function renderPage() {
 
     // Configurar URLs de navegación
     setupBottomNavigation(window.appState.apartmentId, currentLang);
+    console.log('renderPage() completado'); // Log final
 }
 
 function startGuide() {
-    document.getElementById('language-selector-section')?.classList.add('hidden');
-    document.getElementById('navigation-section')?.classList.remove('hidden');
+    console.log('¡Botón Comenzar guía pulsado!');  // Log 1
+    console.log('Estado actual:', window.appState);  // Log 2
+
+    const langSection = document.getElementById('language-selector-section');
+    const navSection = document.getElementById('navigation-section');
+
+    console.log('Selector idioma encontrado:', !!langSection);  // Log 3
+    console.log('Navegación encontrada:', !!navSection);        // Log 4
+
+    if (langSection) {
+        langSection.classList.add('hidden');
+        console.log('Selector ocultado');
+    } else {
+        console.warn('No se encontró #language-selector-section');
+    }
+
+    if (navSection) {
+        navSection.classList.remove('hidden');
+        console.log('Navegación mostrada');
+    } else {
+        console.warn('No se encontró #navigation-section');
+    }
 }
 
 function changeLanguage(lang) {
+    console.log('Cambiando idioma a:', lang); // Log cambio idioma
     const url = new URL(window.location);
     url.searchParams.set('lang', lang);
     window.location.href = url.toString();
