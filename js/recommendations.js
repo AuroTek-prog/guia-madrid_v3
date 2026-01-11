@@ -1,12 +1,20 @@
+// js/recommendations.js - Versión mejorada con zona dinámica + partners
+
 async function renderPage() {
-    const apt = window.appState.apartmentData[window.appState.apartmentId];
-    const recs = apt.recommendations || {}; // Fallback si no hay recomendaciones
+    const apt = window.appState.apartmentData?.[window.appState.apartmentId];
+    if (!apt) {
+        console.error('No hay datos de apartamento');
+        return;
+    }
+
+    const recs = apt.recommendations || {};
 
     document.title = t('navigation.recommendations_title');
     safeText('page-title', t('navigation.recommendations_title'));
     safeText('headline', t('recommendations.title'));
     safeText('subtitle', t('recommendations.subtitle'));
 
+    // Filtros de categorías (mantengo tu código original)
     const filterContainer = document.getElementById('filter-chips');
     if (filterContainer && recs.categories) {
         filterContainer.innerHTML = '';
@@ -18,6 +26,7 @@ async function renderPage() {
         });
     }
 
+    // Featured (mantengo tu código)
     const featuredContainer = document.getElementById('featured-item');
     if (featuredContainer && recs.featured) {
         const featured = recs.featured;
@@ -44,9 +53,10 @@ async function renderPage() {
             </div>`;
     }
 
+    // Secciones estáticas (tu código original)
     const sectionsContainer = document.getElementById('sections-container');
     if (sectionsContainer && recs.sections) {
-        sectionsContainer.innerHTML = ''; // Limpiar secciones anteriores
+        sectionsContainer.innerHTML = '';
         recs.sections.forEach(section => {
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'pt-6';
@@ -124,7 +134,7 @@ async function renderPage() {
             if (visiblePartners.length > 0) {
                 const partnersSection = document.createElement('div');
                 partnersSection.className = 'pt-8';
-                partnersSection.innerHTML = `<h3 class="text-gray-900 dark:text-white text-xl font-bold mb-6">Ofertas y recomendaciones locales en ${zone.name}</h3>`;
+                partnersSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas y recomendaciones locales en ${zone.name}</h3>`;
 
                 const partnersContainer = document.createElement('div');
                 partnersContainer.className = 'grid gap-6 md:grid-cols-2';
@@ -137,7 +147,7 @@ async function renderPage() {
                         <div class="p-5">
                             <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description}</p>
-                            <p class="text-primary font-medium">${partner.offer || 'Oferta especial disponible'}</p>
+                            <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
                         </div>
                     `;
                     partnersContainer.appendChild(card);

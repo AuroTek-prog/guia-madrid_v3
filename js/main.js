@@ -20,6 +20,18 @@ window.t = function(key) {
     return value;
 };
 
+// Helper global para actualizar texto con fallback
+window.safeText = function(id, value) {
+    const el = document.getElementById(id);
+    if (!el) {
+        console.warn(`⚠️ Elemento #${id} no encontrado`);
+        return;
+    }
+    if (value !== undefined && value !== null) {
+        el.textContent = value;
+    }
+};
+
 // Copiar al portapapeles (con fallback)
 window.copyToClipboard = function(text) {
     if (!navigator.clipboard) {
