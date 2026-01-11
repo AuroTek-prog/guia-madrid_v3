@@ -24,12 +24,8 @@
         }
     </script>
 
-    <!-- QR Code library (ligera y sin dependencias) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
     <style>
         body { font-family: 'Manrope', sans-serif; }
-        .qr-container { width: 140px; height: 140px; margin: 0 auto; }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -39,7 +35,7 @@
         <div class="text-center mb-12">
             <h1 class="text-4xl md:text-5xl font-bold text-primary mb-4">Mis Guías Digitales</h1>
             <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Todas tus guías personalizadas en un solo lugar. Comparte el enlace o el QR con tus huéspedes.
+                Todas tus guías personalizadas en un solo lugar. Copia el enlace y compártelo con tus huéspedes.
             </p>
         </div>
 
@@ -52,37 +48,29 @@
         <div class="mt-16 p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700">
             <h3 class="text-2xl font-semibold mb-6 text-center">¿Cómo añadir un nuevo apartamento?</h3>
             <ol class="list-decimal pl-6 space-y-4 text-gray-700 dark:text-gray-300 text-lg">
-                <li>Crea una carpeta nueva: <code>assets/images/apartments/nuevo-slug/</code></li>
-                <li>Sube las fotos:
-                    <ul class="list-disc pl-6 mt-2">
-                        <li><strong>portada.jpg</strong> (foto principal del encabezado)</li>
-                        <li>Opcional: <strong>acceso.jpg</strong> (puerta o caja fuerte)</li>
-                    </ul>
-                </li>
+                <li>Crea carpeta: <code>assets/images/apartments/nuevo-slug/</code></li>
+                <li>Sube <strong>portada.jpg</strong> (foto principal del encabezado)</li>
                 <li>Edita <code>data/apartments.json</code>:
                     <ul class="list-disc pl-6 mt-2">
-                        <li>Copia un bloque existente (ej. "sol-101")</li>
-                        <li>Cambia la clave a algo único: <code>"nuevo-slug"</code></li>
-                        <li>Actualiza <code>"name"</code>, <code>"address"</code>, <code>"zone"</code></li>
-                        <li>Actualiza <code>"images.portada"</code> con la nueva ruta</li>
-                        <li>Si usas Raixer: pon <code>"raixerDevices.deviceId"</code> con el ID real de este piso</li>
+                        <li>Copia un bloque existente</li>
+                        <li>Cambia clave a <code>"nuevo-slug"</code></li>
+                        <li>Actualiza nombre, dirección, zona, fotos y <code>raixerDevices.deviceId</code></li>
                     </ul>
                 </li>
-                <li>Commit y push → ¡la guía y esta página se actualizan automáticamente!</li>
+                <li>Commit y push → ¡aparece automáticamente aquí y en la guía!</li>
             </ol>
             <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                Si necesitas ayuda con fotos o datos, envíamelos y lo subo yo.
+                Si necesitas ayuda, envíame fotos y datos.
             </p>
         </div>
 
         <!-- Footer -->
         <footer class="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
             <p>© 2026 Aurotek Guest - Guías Inteligentes para Alojamientos Turísticos</p>
-            <p class="mt-2">Última actualización: automática al subir cambios</p>
         </footer>
     </div>
 
-    <!-- Script para cargar dinámicamente desde apartments.json -->
+    <!-- Script dinámico -->
     <script>
         async function loadApartments() {
             try {
@@ -91,16 +79,17 @@
                 const apartments = await response.json();
 
                 const list = document.getElementById('apartments-list');
-                list.innerHTML = ''; // limpiar
+                list.innerHTML = '';
 
                 Object.entries(apartments).forEach(([slug, apt]) => {
                     const card = document.createElement('div');
                     card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300';
 
-                    // Foto portada (fallback si no existe)
                     const bgImage = apt.images?.portada 
                         ? `url(${apt.images.portada})` 
                         : 'ur[](https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
+
+                    const guideUrl = `https://aurotek-prog.github.io/guia-madrid_v3/?apartment=${slug}`;
 
                     card.innerHTML = `
                         <div class="h-48 bg-cover bg-center" style="background-image: ${bgImage};"></div>
@@ -108,44 +97,32 @@
                             <h2 class="text-xl font-semibold mb-2">${apt.name || 'Apartamento sin nombre'}</h2>
                             <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${apt.address || 'Dirección no disponible'}</p>
                             
-                            <a href="?apartment=${slug}" target="_blank"
-                               class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors mb-4">
+                            <a href="${guideUrl}" target="_blank"
+                               class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors mb-3">
                                 Abrir Guía
                             </a>
                             
-                            <!-- QR Code -->
-                            <div class="qr-container" id="qr-${slug}"></div>
-                            <p class="text-xs text-center mt-2 text-gray-500 dark:text-gray-400">
-                                Escanea para abrir directamente
-                            </p>
+                            <button onclick="navigator.clipboard.writeText('${guideUrl}').then(() => alert('Enlace copiado!'))"
+                                    class="block w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-6 rounded-xl text-center transition-colors">
+                                Copiar Enlace
+                            </button>
                         </div>
                     `;
 
                     list.appendChild(card);
-
-                    // Generar QR automáticamente
-                    new QRCode(document.getElementById(`qr-${slug}`), {
-                        text: `${window.location.origin}${window.location.pathname}?apartment=${slug}`,
-                        width: 140,
-                        height: 140,
-                        colorDark: "#1152d4",
-                        colorLight: "#ffffff",
-                        correctLevel: QRCode.CorrectLevel.H
-                    });
                 });
 
                 if (Object.keys(apartments).length === 0) {
-                    list.innerHTML = '<p class="text-center text-gray-500 col-span-full">Aún no hay apartamentos configurados.</p>';
+                    list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">Aún no hay apartamentos configurados.</p>';
                 }
 
             } catch (error) {
                 console.error('Error cargando apartamentos:', error);
                 document.getElementById('apartments-list').innerHTML = 
-                    '<p class="text-center text-red-600 col-span-full">Error al cargar la lista. Refresca la página.</p>';
+                    '<p class="text-center text-red-600 col-span-full py-12">Error al cargar la lista. Refresca la página.</p>';
             }
         }
 
-        // Cargar al iniciar
         window.addEventListener('DOMContentLoaded', loadApartments);
     </script>
 
