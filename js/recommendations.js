@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión completa con filtro dinámico + partners por zona
+// js/recommendations.js - Versión FINAL con filtro dinámico + partners por zona + fallbacks
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
@@ -6,6 +6,7 @@ async function renderPage() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
     if (!apt) {
         console.error('No hay datos de apartamento');
+        showFallbackMessage('No se pudo cargar los datos del apartamento.');
         return;
     }
 
@@ -14,7 +15,7 @@ async function renderPage() {
     document.title = t('navigation.recommendations_title');
     safeText('page-title', t('navigation.recommendations_title'));
     safeText('headline', t('recommendations.title'));
-    safeText('subtitle', t('recommendations.subtitle'));
+    safeText('subtitle', t('recommendations.subtitle') || 'Lugares seleccionados a poca distancia de tu apartamento en Madrid');
 
     // Renderizar chips de filtro
     const filterContainer = document.getElementById('filter-chips');
@@ -40,31 +41,36 @@ async function renderPage() {
         });
     }
 
-    // Featured
+    // Featured con fallback
     const featuredContainer = document.getElementById('featured-item');
-    if (featuredContainer && recs.featured) {
-        const featured = recs.featured;
-        safeText('featured-title', t('recommendations.hosts_pick'));
-        featuredContainer.innerHTML = `
-            <div class="absolute top-3 left-3 z-10 bg-white/90 dark:bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                <span class="material-symbols-outlined text-primary text-[14px]">directions_walk</span>
-                <span class="text-xs font-bold text-gray-900 dark:text-white">${featured.distance}</span>
-            </div>
-            <div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover" style="background-image: url('${featured.image}');">
-                <div class="w-full h-full bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
-            </div>
-            <div class="flex w-full flex-col items-stretch justify-center gap-1 p-4">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">${featured.name}</p>
-                        <p class="text-primary text-sm font-medium mt-1">${t(`recommendations.types.${featured.typeKey}`)} • ${featured.priceRange}</p>
-                    </div>
-                    <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full text-primary hover:bg-primary hover:text-white transition-colors">
-                        <span class="material-symbols-outlined text-[20px] block">near_me</span>
-                    </div>
+    if (featuredContainer) {
+        if (recs.featured) {
+            const featured = recs.featured;
+            safeText('featured-title', t('recommendations.hosts_pick'));
+            featuredContainer.innerHTML = `
+                <div class="absolute top-3 left-3 z-10 bg-white/90 dark:bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                    <span class="material-symbols-outlined text-primary text-[14px]">directions_walk</span>
+                    <span class="text-xs font-bold text-gray-900 dark:text-white">${featured.distance || 'N/A'}</span>
                 </div>
-                <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2 mt-1">${t(`recommendations.descriptions.${featured.descriptionKey}`)}</p>
-            </div>`;
+                <div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover" style="background-image: url('${featured.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}');">
+                    <div class="w-full h-full bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+                </div>
+                <div class="flex w-full flex-col items-stretch justify-center gap-1 p-4">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">${featured.name || 'Recomendación destacada'}</p>
+                            <p class="text-primary text-sm font-medium mt-1">${t(`recommendations.types.${featured.typeKey || 'unknown'}`)} • ${featured.priceRange || 'N/A'}</p>
+                        </div>
+                        <div class="bg-primary/10 dark:bg-primary/20 p-2 rounded-full text-primary hover:bg-primary hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-[20px] block">near_me</span>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal line-clamp-2 mt-1">${t(`recommendations.descriptions.${featured.descriptionKey || 'no_desc'}`)}</p>
+                </div>`;
+        } else {
+            safeText('featured-title', 'Recomendación destacada');
+            featuredContainer.innerHTML = '<p class="text-center text-gray-500 py-4">No hay recomendación destacada disponible</p>';
+        }
     }
 
     // Renderizar contenido filtrado (estático + partners)
@@ -74,7 +80,7 @@ async function renderPage() {
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
 
-// Función principal de renderizado filtrado (estático + partners)
+// Función principal de renderizado filtrado
 async function renderFilteredContent() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
     if (!apt) return;
@@ -82,13 +88,17 @@ async function renderFilteredContent() {
     const sectionsContainer = document.getElementById('sections-container');
     if (!sectionsContainer) return;
 
-    sectionsContainer.innerHTML = ''; // Limpiar contenido previo
+    sectionsContainer.innerHTML = ''; // Limpiar
 
-    // 1️⃣ Recomendaciones estáticas filtradas
+    // Mostrar fallback si no hay nada
+    let hasContent = false;
+
+    // 1. Recomendaciones estáticas filtradas
     if (recs.sections) {
         recs.sections.forEach(section => {
             const filteredItems = section.items.filter(item => currentFilter === 'all' || item.typeKey === currentFilter);
             if (filteredItems.length === 0) return;
+            hasContent = true;
 
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'pt-6';
@@ -151,13 +161,13 @@ async function renderFilteredContent() {
         });
     }
 
-    // 2️⃣ Partners dinámicos filtrados por zona y filtro
+    // 2. Partners dinámicos filtrados por zona y categoría actual
     try {
         const zone = await getApartmentZone(apt);
         if (zone) {
             console.log('Apartamento en zona:', zone.name);
 
-            const timestamp = new Date().getTime(); // Bypass cache
+            const timestamp = new Date().getTime();
             const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
             if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
             const allPartners = await partnersRes.json();
@@ -169,6 +179,7 @@ async function renderFilteredContent() {
             });
 
             if (visiblePartners.length > 0) {
+                hasContent = true;
                 const partnersSection = document.createElement('div');
                 partnersSection.className = 'pt-8';
                 partnersSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas y recomendaciones locales en ${zone.name}</h3>`;
@@ -180,10 +191,10 @@ async function renderFilteredContent() {
                     const card = document.createElement('div');
                     card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow';
                     card.innerHTML = `
-                        <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image}')"></div>
+                        <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
                         <div class="p-5">
                             <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
                             <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
                         </div>`;
                     partnersContainer.appendChild(card);
@@ -191,14 +202,21 @@ async function renderFilteredContent() {
 
                 partnersSection.appendChild(partnersContainer);
                 sectionsContainer.appendChild(partnersSection);
-            } else {
-                console.log('No hay partners activos en esta zona con filtro actual');
             }
-        } else {
-            console.log('No se detectó zona para este apartamento');
         }
     } catch (err) {
         console.error('Error cargando partners o zonas:', err);
+    }
+
+    // Fallback visual si no hay NADA (estático ni partners)
+    if (!hasContent) {
+        const noContent = document.createElement('div');
+        noContent.className = 'pt-8 text-center text-gray-500 dark:text-gray-400';
+        noContent.innerHTML = `
+            <span class="material-symbols-outlined text-5xl mb-4 text-gray-300 dark:text-gray-600">info</span>
+            <p class="text-lg font-medium">No hay recomendaciones disponibles en este momento</p>
+            <p class="text-sm mt-2">Próximamente más contenido personalizado.</p>`;
+        sectionsContainer.appendChild(noContent);
     }
 
     // Configurar navegación inferior

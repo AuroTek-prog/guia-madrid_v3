@@ -4,12 +4,12 @@
     "name": "Centro",
     "barrios": ["Palacio", "Embajadores", "Cortes", "Justicia", "Universidad", "Sol"],
     "polygon": [
-      [-3.713, 40.420],
-      [-3.700, 40.420],
-      [-3.700, 40.410],
-      [-3.708, 40.408],
-      [-3.713, 40.415],
-      [-3.713, 40.420]
+      [-3.717, 40.422],
+      [-3.699, 40.422],
+      [-3.699, 40.407],
+      [-3.710, 40.404],
+      [-3.717, 40.412],
+      [-3.717, 40.422]
     ]
   },
   {
@@ -17,11 +17,11 @@
     "name": "Arganzuela",
     "barrios": ["Imperial", "Acacias", "Chopera", "Legazpi", "Delicias", "Palos de Moguer", "Atocha"],
     "polygon": [
-      [-3.700, 40.410],
-      [-3.690, 40.410],
-      [-3.690, 40.395],
-      [-3.700, 40.395],
-      [-3.700, 40.410]
+      [-3.701, 40.410],
+      [-3.689, 40.410],
+      [-3.689, 40.394],
+      [-3.701, 40.394],
+      [-3.701, 40.410]
     ]
   },
   {
@@ -29,12 +29,12 @@
     "name": "Retiro",
     "barrios": ["Pacífico", "Adelfas", "Estrella", "Ibiza", "Jerónimos", "Niño Jesús"],
     "polygon": [
-      [-3.690, 40.410],
-      [-3.675, 40.410],
-      [-3.675, 40.400],
-      [-3.685, 40.395],
-      [-3.690, 40.405],
-      [-3.690, 40.410]
+      [-3.688, 40.410],
+      [-3.674, 40.410],
+      [-3.674, 40.398],
+      [-3.684, 40.395],
+      [-3.688, 40.402],
+      [-3.688, 40.410]
     ]
   },
   {
@@ -42,11 +42,11 @@
     "name": "Salamanca",
     "barrios": ["Recoletos", "Goya", "Fuente del Berro", "Guindalera", "Lista", "Castellana"],
     "polygon": [
-      [-3.675, 40.430],
-      [-3.660, 40.430],
-      [-3.660, 40.415],
+      [-3.675, 40.432],
+      [-3.659, 40.432],
+      [-3.659, 40.415],
       [-3.675, 40.415],
-      [-3.675, 40.430]
+      [-3.675, 40.432]
     ]
   },
   {
@@ -54,11 +54,11 @@
     "name": "Chamartín",
     "barrios": ["El Viso", "Prosperidad", "Ciudad Jardín", "Hispanoamérica", "Nueva España", "Castilla"],
     "polygon": [
-      [-3.680, 40.450],
-      [-3.660, 40.450],
-      [-3.660, 40.435],
-      [-3.680, 40.435],
-      [-3.680, 40.450]
+      [-3.681, 40.451],
+      [-3.659, 40.451],
+      [-3.659, 40.435],
+      [-3.681, 40.435],
+      [-3.681, 40.451]
     ]
   },
   {
@@ -66,11 +66,11 @@
     "name": "Tetuán",
     "barrios": ["Bellas Vistas", "Cuatro Caminos", "Castillejos", "Almenara", "Valdeacederas", "Berruguete"],
     "polygon": [
-      [-3.710, 40.460],
-      [-3.690, 40.460],
-      [-3.690, 40.445],
-      [-3.710, 40.445],
-      [-3.710, 40.460]
+      [-3.711, 40.462],
+      [-3.689, 40.462],
+      [-3.689, 40.445],
+      [-3.711, 40.445],
+      [-3.711, 40.462]
     ]
   },
   {
@@ -78,23 +78,11 @@
     "name": "Chamberí",
     "barrios": ["Gaztambide", "Arapiles", "Trafalgar", "Almagro", "Ríos Rosas", "Vallehermoso"],
     "polygon": [
-      [-3.700, 40.435],
-      [-3.685, 40.435],
-      [-3.685, 40.420],
-      [-3.700, 40.420],
-      [-3.700, 40.435]
-    ]
-  },
-  {
-    "id": "fuencarral-el-pardo",
-    "name": "Fuencarral-El Pardo",
-    "barrios": ["El Pardo", "Fuentelarreina", "Peñagrande", "Barrio del Pilar", "La Paz", "Valverde", "Mirasierra"],
-    "polygon": [
-      [-3.750, 40.480],
-      [-3.680, 40.480],
-      [-3.680, 40.450],
-      [-3.750, 40.450],
-      [-3.750, 40.480]
+      [-3.701, 40.436],
+      [-3.686, 40.436],
+      [-3.686, 40.421],
+      [-3.701, 40.421],
+      [-3.701, 40.436]
     ]
   },
   {
@@ -102,11 +90,11 @@
     "name": "Moncloa-Aravaca",
     "barrios": ["Casa de Campo", "Argüelles", "Ciudad Universitaria", "Valdezarza"],
     "polygon": [
-      [-3.730, 40.440],
-      [-3.710, 40.440],
-      [-3.710, 40.425],
-      [-3.730, 40.425],
-      [-3.730, 40.440]
+      [-3.731, 40.441],
+      [-3.709, 40.441],
+      [-3.709, 40.426],
+      [-3.731, 40.426],
+      [-3.731, 40.441]
     ]
   },
   {
@@ -114,11 +102,11 @@
     "name": "Latina",
     "barrios": ["Los Cármenes", "Puerta del Ángel", "Aluche", "Campamento"],
     "polygon": [
-      [-3.770, 40.410],
-      [-3.730, 40.410],
+      [-3.772, 40.412],
+      [-3.730, 40.412],
       [-3.730, 40.390],
-      [-3.770, 40.390],
-      [-3.770, 40.410]
+      [-3.772, 40.390],
+      [-3.772, 40.412]
     ]
   },
   {
@@ -126,131 +114,11 @@
     "name": "Carabanchel",
     "barrios": ["San Isidro", "Comillas", "Vista Alegre", "Opañel", "Puerta Bonita", "Buenavista", "Abrantes"],
     "polygon": [
-      [-3.730, 40.380],
-      [-3.700, 40.380],
-      [-3.700, 40.360],
-      [-3.730, 40.360],
-      [-3.730, 40.380]
-    ]
-  },
-  {
-    "id": "usera",
-    "name": "Usera",
-    "barrios": ["Almendrales", "Moscardó", "Pradolongo", "Orcasitas"],
-    "polygon": [
-      [-3.710, 40.390],
-      [-3.690, 40.390],
-      [-3.690, 40.370],
-      [-3.710, 40.370],
-      [-3.710, 40.390]
-    ]
-  },
-  {
-    "id": "puente-de-vallecas",
-    "name": "Puente de Vallecas",
-    "barrios": ["Numancia", "Gran Vía de Vallecas", "Entrevías", "Palomeras Bajas", "Palomeras Sureste"],
-    "polygon": [
-      [-3.670, 40.390],
-      [-3.650, 40.390],
-      [-3.650, 40.370],
-      [-3.670, 40.370],
-      [-3.670, 40.390]
-    ]
-  },
-  {
-    "id": "moratalaz",
-    "name": "Moratalaz",
-    "barrios": ["Marroquina", "Media Legua", "Artilleros", "Fontarrón"],
-    "polygon": [
-      [-3.650, 40.410],
-      [-3.630, 40.410],
-      [-3.630, 40.395],
-      [-3.650, 40.395],
-      [-3.650, 40.410]
-    ]
-  },
-  {
-    "id": "ciudad-lineal",
-    "name": "Ciudad Lineal",
-    "barrios": ["Ventas", "Pueblo Nuevo", "Quintana", "Concepción", "San Pascual", "San Juan Bautista", "Colina", "Atalaya"],
-    "polygon": [
-      [-3.650, 40.430],
-      [-3.620, 40.430],
-      [-3.620, 40.415],
-      [-3.650, 40.415],
-      [-3.650, 40.430]
-    ]
-  },
-  {
-    "id": "hortaleza",
-    "name": "Hortaleza",
-    "barrios": ["Palomas", "Pinar del Rey", "Canillas", "Apóstol Santiago", "Valdefuentes", "Piovera"],
-    "polygon": [
-      [-3.650, 40.470],
-      [-3.610, 40.470],
-      [-3.610, 40.450],
-      [-3.650, 40.450],
-      [-3.650, 40.470]
-    ]
-  },
-  {
-    "id": "villaverde",
-    "name": "Villaverde",
-    "barrios": ["San Andrés", "Los Ángeles", "Butarque", "Los Rosales"],
-    "polygon": [
-      [-3.710, 40.350],
-      [-3.680, 40.350],
-      [-3.680, 40.330],
-      [-3.710, 40.330],
-      [-3.710, 40.350]
-    ]
-  },
-  {
-    "id": "villa-de-vallecas",
-    "name": "Villa de Vallecas",
-    "barrios": ["Casco Histórico de Vallecas", "Santa Eugenia"],
-    "polygon": [
-      [-3.620, 40.380],
-      [-3.590, 40.380],
-      [-3.590, 40.360],
-      [-3.620, 40.360],
-      [-3.620, 40.380]
-    ]
-  },
-  {
-    "id": "vicalvaro",
-    "name": "Vicálvaro",
-    "barrios": ["Casco Histórico de Vicálvaro", "Valdebernardo"],
-    "polygon": [
-      [-3.590, 40.410],
-      [-3.560, 40.410],
-      [-3.560, 40.390],
-      [-3.590, 40.390],
-      [-3.590, 40.410]
-    ]
-  },
-  {
-    "id": "san-blas-canillejas",
-    "name": "San Blas-Canillejas",
-    "barrios": ["Canillejas", "Hellín", "Rejas", "Rosalía de Castro"],
-    "polygon": [
-      [-3.580, 40.430],
-      [-3.550, 40.430],
-      [-3.550, 40.410],
-      [-3.580, 40.410],
-      [-3.580, 40.430]
-    ]
-  },
-  {
-    "id": "barajas",
-    "name": "Barajas",
-    "barrios": ["Casco Histórico de Barajas", "Alameda de Osuna", "Corralejos", "Timón"],
-    "polygon": [
-      [-3.580, 40.470],
-      [-3.540, 40.470],
-      [-3.540, 40.450],
-      [-3.580, 40.450],
-      [-3.580, 40.470]
+      [-3.732, 40.381],
+      [-3.699, 40.381],
+      [-3.699, 40.360],
+      [-3.732, 40.360],
+      [-3.732, 40.381]
     ]
   }
 ]
