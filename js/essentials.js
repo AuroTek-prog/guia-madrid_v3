@@ -3,6 +3,7 @@
    - Detecta puertas reales vía /devices/{id}/doors
    - Botones y LEDs solo para puertas existentes
    - Fallbacks completos y logs detallados
+   - Animación LED de éxito integrada
 ===================================================== */
 
 // CONFIG RAIXER
@@ -140,7 +141,6 @@ async function initializeEssentials() {
         const apt = apartmentsData[apartmentId];
         if (!apt) throw new Error(`Apartamento ${apartmentId} no encontrado`);
 
-        // Carga básica con fallback
         document.title = t('essentials.title');
         safeText('page-title', t('essentials.title'));
         safeText('apartment-name', apt.name || 'Apartamento sin nombre');
@@ -179,32 +179,7 @@ async function initializeEssentials() {
             }
         }
 
-        // House Rules
-        safeText('house-rules-title', t('essentials.house_rules_title'));
-        const rulesGrid = safeGet('house-rules-grid');
-        if (rulesGrid) {
-            rulesGrid.innerHTML = '';
-            if (Array.isArray(apt.houseRules)) {
-                const colorMap = { red: 'bg-red-50 dark:bg-red-900/20 text-red-500', indigo: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500', green: 'bg-green-50 dark:bg-green-900/20 text-green-500', amber: 'bg-amber-50 dark:bg-amber-900/20 text-amber-500' };
-                apt.houseRules.forEach(rule => {
-                    const colorClass = colorMap[rule.color] || 'bg-gray-100 text-gray-500';
-                    const titleKey = rule.titleKey?.replace(/^rules_/, '');
-                    const subtitleKey = rule.subtitleKey?.replace(/^rules_/, '');
-                    const card = document.createElement('div');
-                    card.className = 'bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex flex-col items-center text-center gap-2';
-                    card.innerHTML = `<div class="size-10 rounded-full ${colorClass} flex items-center justify-center"><span class="material-symbols-outlined">${rule.icon}</span></div>
-                                      <span class="text-sm font-semibold">${t(`essentials.rules.${titleKey}`)}</span>
-                                      ${subtitleKey ? `<span class="text-xs text-text-muted-light dark:text-text-muted-dark">${t(`essentials.rules.${subtitleKey}`)}</span>` : ''}`;
-                    rulesGrid.appendChild(card);
-                });
-            } else {
-                rulesGrid.innerHTML = '<p class="text-sm text-gray-500">Reglas no disponibles</p>';
-            }
-        }
-
-        // =====================================================
-        // RAIXER - Lista dinámica de puertas + LEDs
-        // =====================================================
+        // RAIXER
         const portalBtn = safeGet('btn-portal-access');
         const houseBtn = safeGet('btn-house-access');
         const portalLed = safeGet('led-portal');
@@ -226,10 +201,8 @@ async function initializeEssentials() {
             return;
         }
 
-        // Lista puertas reales
         const doors = await getRaixerDoors(deviceId);
 
-        // Función para actualizar LED (estado general del dispositivo)
         async function updateLed(led) {
             if (!led) return;
             led.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-yellow-500 animate-pulse';
@@ -237,19 +210,29 @@ async function initializeEssentials() {
             led.className = `absolute top-3 right-3 h-3 w-3 rounded-full ${status.online ? 'bg-green-500' : 'bg-red-500'}`;
         }
 
-        // Inicializar LEDs
         await updateLed(portalLed);
         await updateLed(houseLed);
 
-        // Botones dinámicos según puertas reales
         if (portalBtn) {
             const portalDoor = doors.find(d => d.use?.toLowerCase() === 'street' || d.name?.toLowerCase().includes('calle') || d.name?.toLowerCase().includes('portal'));
             if (portalDoor) {
                 portalBtn.onclick = async () => {
                     showNotification('Abriendo portal...');
                     const result = await raixerOpenDoor(deviceId, portalDoor.use || portalDoor._id);
-                    showNotification(result.success ? 'Portal abierto correctamente' : `Error: ${result.error || 'Desconocido'}`);
-                    await updateLed(portalLed);
+
+                    if (result.success) {
+                        showNotification('Portal abierto correctamente');
+
+                        if (portalLed) {
+                            portalLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
+                            setTimeout(async () => {
+                                await updateLed(portalLed);
+                            }, 2500);
+                        }
+                    } else {
+                        showNotification(`Error: ${result.error || 'Desconocido'}`);
+                        await updateLed(portalLed);
+                    }
                 };
             } else {
                 portalBtn.disabled = true;
@@ -264,8 +247,20 @@ async function initializeEssentials() {
                 houseBtn.onclick = async () => {
                     showNotification('Abriendo puerta interior...');
                     const result = await raixerOpenDoor(deviceId, houseDoor.use || houseDoor._id);
-                    showNotification(result.success ? 'Puerta abierta correctamente' : `Error: ${result.error || 'Desconocido'}`);
-                    await updateLed(houseLed);
+
+                    if (result.success) {
+                        showNotification('Puerta abierta correctamente');
+
+                        if (houseLed) {
+                            houseLed.className = 'absolute top-3 right-3 h-3 w-3 rounded-full bg-green-500 shadow-lg shadow-green-500/50 scale-150 opacity-100 transition-all duration-300 animate-pulse-fast';
+                            setTimeout(async () => {
+                                await updateLed(houseLed);
+                            }, 2500);
+                        }
+                    } else {
+                        showNotification(`Error: ${result.error || 'Desconocido'}`);
+                        await updateLed(houseLed);
+                    }
                 };
             } else {
                 houseBtn.disabled = true;
