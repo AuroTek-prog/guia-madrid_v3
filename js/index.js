@@ -1,14 +1,16 @@
-// js/index.js - Lógica principal de la home - Versión robusta, segura y con logs
+// js/index.js - Lógica principal de la home - Versión robusta, segura y con logs para depurar
 
 // Fallback temporal para t() (por si main.js tarda)
-window.t = window.t || function(key) { return `[${key}]`; };
+window.t = window.t || function(key) {
+    return `[${key}]`; // fallback básico
+};
 
 let currentLang = 'es';
 
 function renderPage() {
-    console.log('renderPage() iniciado');  // Log 0: inicio renderPage
+    console.log('renderPage() iniciado');  // Log 0
 
-    // Esperar a que t() y traducciones estén disponibles
+    // Esperar a que t() y traducciones estén listas
     if (typeof window.t !== 'function' || !window.appState?.translations) {
         console.warn('t() o traducciones no listas → reintentando en 100ms');
         setTimeout(renderPage, 100);
@@ -16,7 +18,7 @@ function renderPage() {
     }
 
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
-    console.log('Datos de apartamento cargados:', apt);  // Log 1: ver apartmentData
+    console.log('Datos de apartamento cargados:', apt);  // Log 1
 
     if (!apt) {
         console.error('No hay datos de apartamento disponibles');
@@ -40,7 +42,8 @@ function renderPage() {
     }
 
     document.getElementById('hero-subtitle').textContent = t('index.hero_subtitle');
-    document.getElementById('welcome-title').innerHTML = `${t('index.welcome_title')} <br/><span class="font-bold">${t('index.welcome_bold')}</span>`;
+    document.getElementById('welcome-title').innerHTML = 
+        `${t('index.welcome_title')} <br/><span class="font-bold">${t('index.welcome_bold')}</span>`;
 
     // Tarjeta flotante
     const thumbnail = document.getElementById('property-thumbnail');
@@ -67,12 +70,13 @@ function renderPage() {
             { code: 'fr', flag: '🇫🇷', name: 'languages.french' },
             { code: 'de', flag: '🇩🇪', name: 'languages.german' }
         ];
+
         languages.forEach(lang => {
             const isSelected = lang.code === currentLang;
             const button = document.createElement('button');
             button.className = `group relative flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-white dark:bg-[#1e2736] ${isSelected ? 'border-2 border-primary/10 dark:border-primary/30' : 'border border-transparent hover:border-primary/30 dark:hover:border-primary/50'} shadow-sm hover:shadow-md transition-all duration-300 ring-2 ring-transparent focus:ring-primary/20`;
             button.onclick = () => {
-                console.log(`Idioma seleccionado: ${lang.code}`); // Log 5: click idioma
+                console.log(`Idioma seleccionado: ${lang.code}`); // Log 5
                 changeLanguage(lang.code);
             };
             button.innerHTML = `
@@ -98,6 +102,7 @@ function renderPage() {
         { id: 'nav-tourism', titleKey: 'navigation.tourism_title', descKey: 'navigation.tourism_desc' },
         { id: 'nav-contact', titleKey: 'navigation.contact_title', descKey: 'navigation.contact_desc' }
     ];
+
     navConfig.forEach(({ id, titleKey, descKey }) => {
         const card = document.getElementById(id);
         if (card) {
@@ -109,31 +114,21 @@ function renderPage() {
     });
     console.log('Navegación renderizada'); // Log 7
 
-    // Asignar evento al botón de forma programática (mejor que onclick inline)
-    document.addEventListener('DOMContentLoaded', () => {
-        const startBtn = document.getElementById('start-guide-btn');
-        if (startBtn) {
-            startBtn.addEventListener('click', startGuide);
-            console.log('Evento click startGuide asignado'); // Log 8
-        } else {
-            console.warn('Botón start-guide-btn no encontrado');
-        }
-    });
-
     // Configurar URLs de navegación
     setupBottomNavigation(window.appState.apartmentId, currentLang);
+
     console.log('renderPage() completado'); // Log final
 }
 
 function startGuide() {
-    console.log('¡Botón Comenzar guía pulsado!');  // Log 1
-    console.log('Estado actual:', window.appState);  // Log 2
+    console.log('¡Botón Comenzar guía pulsado!');  // Log clave
+    console.log('Estado actual:', window.appState);
 
     const langSection = document.getElementById('language-selector-section');
     const navSection = document.getElementById('navigation-section');
 
-    console.log('Selector idioma encontrado:', !!langSection);  // Log 3
-    console.log('Navegación encontrada:', !!navSection);        // Log 4
+    console.log('Selector idioma encontrado:', !!langSection);
+    console.log('Navegación encontrada:', !!navSection);
 
     if (langSection) {
         langSection.classList.add('hidden');
@@ -151,8 +146,49 @@ function startGuide() {
 }
 
 function changeLanguage(lang) {
-    console.log('Cambiando idioma a:', lang); // Log cambio idioma
+    console.log('Cambiando idioma a:', lang);
     const url = new URL(window.location);
     url.searchParams.set('lang', lang);
     window.location.href = url.toString();
 }
+
+function setupBottomNavigation(apartmentId, lang) {
+    console.log('setupBottomNavigation() iniciado'); // Log inicio
+
+    const basePath = window.ROOT_PATH || './'; // raíz del repo
+    const baseUrl = `?apartment=${apartmentId}&lang=${lang}`;
+    console.log('basePath:', basePath, 'baseUrl:', baseUrl);
+
+    const navHome = document.getElementById('nav-home');
+    const navDevices = document.getElementById('nav-devices');
+    const navRecommendations = document.getElementById('nav-recommendations');
+    const navTourism = document.getElementById('nav-tourism');
+    const navContact = document.getElementById('nav-contact');
+
+    if (navHome) navHome.href = `${basePath}index.html${baseUrl}`;
+    if (navDevices) navDevices.href = `${basePath}pages/devices.html${baseUrl}`;
+    if (navRecommendations) navRecommendations.href = `${basePath}pages/recommendations.html${baseUrl}`;
+    if (navTourism) navTourism.href = `${basePath}pages/tourism.html${baseUrl}`;
+    if (navContact) navContact.href = `${basePath}pages/contact.html${baseUrl}`;
+
+    console.log('URLs de navegación configuradas:', {
+        home: navHome?.href,
+        devices: navDevices?.href,
+        recommendations: navRecommendations?.href,
+        tourism: navTourism?.href,
+        contact: navContact?.href
+    });
+
+    console.log('setupBottomNavigation() completado'); // Log fin
+}
+
+// Asignar evento al botón de forma programática (¡mejor que onclick inline!)
+document.addEventListener('DOMContentLoaded', () => {
+    const startBtn = document.getElementById('start-guide-btn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startGuide);
+        console.log('Evento click asignado al botón Comenzar guía'); // Log 8
+    } else {
+        console.warn('No se encontró el botón #start-guide-btn');
+    }
+});
