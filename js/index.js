@@ -92,6 +92,16 @@ function renderPage() {
         }
     });
 
+    // Asignar evento al botón de forma programática (mejor que onclick inline)
+    document.addEventListener('DOMContentLoaded', () => {
+        const startBtn = document.getElementById('start-guide-btn');
+        if (startBtn) {
+            startBtn.addEventListener('click', startGuide);
+        } else {
+            console.warn('Botón start-guide-btn no encontrado');
+        }
+    });
+
     // Configurar URLs de navegación
     setupBottomNavigation(window.appState.apartmentId, currentLang);
 }
