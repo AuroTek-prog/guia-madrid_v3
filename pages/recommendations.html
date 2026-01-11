@@ -52,11 +52,11 @@
 
         <!-- Top Bar -->
         <header class="sticky top-0 z-50 flex items-center justify-between bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 border-b border-gray-200 dark:border-gray-800">
-            <button onclick="goBack()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+            <button onclick="goBack()" aria-label="Volver atrás" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
                 <span class="material-symbols-outlined">arrow_back</span>
             </button>
             <h1 id="page-title" class="text-base font-bold text-center flex-1">Recomendaciones Cercanas</h1>
-            <button onclick="changeLanguage()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
+            <button onclick="changeLanguage()" aria-label="Cambiar idioma" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
                 <span class="material-symbols-outlined">language</span>
             </button>
         </header>
@@ -66,27 +66,30 @@
             <p id="subtitle" class="text-gray-500 dark:text-gray-400 text-sm mt-2">Lugares seleccionados a poca distancia de tu apartamento en Madrid</p>
         </div>
 
+        <!-- Barra de filtros -->
         <div class="sticky top-[72px] z-40 bg-white dark:bg-[#101622] pt-2 pb-4">
             <div id="filter-chips" class="flex gap-3 px-5 overflow-x-auto hide-scrollbar snap-x"></div>
         </div>
 
+        <!-- Recomendación destacada -->
         <section class="px-5 pb-2 pt-2">
             <div class="flex items-center gap-2 mb-3">
                 <span class="material-symbols-outlined text-primary text-[20px]">stars</span>
-                <h3 id="featured-title" class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Recomendación del Anfitrión</h3>
+                <h3 id="featured-title" class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Recomendación Destacada</h3>
             </div>
             <div id="featured-item" class="group relative flex flex-col items-stretch justify-start rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none bg-white dark:bg-gray-800 overflow-hidden cursor-pointer active:scale-[0.99] transition-transform duration-200"></div>
         </section>
 
+        <!-- Contenedor principal de secciones y partners -->
         <div id="sections-container" class="px-5 pt-6 pb-24"></div>
 
-        <!-- Mapa interactivo (opcional - se muestra si hay coordenadas) -->
+        <!-- Mapa interactivo -->
         <div id="map-container" class="px-5 pb-24 hidden">
             <h3 class="text-lg font-bold mb-3">Ubicación y alrededores</h3>
             <div id="map" class="w-full h-64 rounded-xl shadow-md"></div>
         </div>
 
-        <!-- Fallback visual si no hay recomendaciones ni partners -->
+        <!-- Fallback visual si no hay recomendaciones -->
         <div id="no-recommendations" class="px-5 pt-8 pb-24 text-center text-gray-500 dark:text-gray-400 hidden">
             <span class="material-symbols-outlined text-5xl mb-4 text-gray-300 dark:text-gray-600">info</span>
             <p class="text-lg font-medium">No hay recomendaciones disponibles en este momento</p>
@@ -97,23 +100,23 @@
     <!-- Bottom Navigation -->
     <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800">
         <div class="flex justify-around items-center h-16 max-w-md mx-auto">
-            <a id="nav-home" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+            <a id="nav-home" href="#" aria-label="Inicio" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">home</span>
                 <span class="text-[10px]">Inicio</span>
             </a>
-            <a id="nav-devices" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+            <a id="nav-devices" href="#" aria-label="Dispositivos" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">power</span>
                 <span class="text-[10px]">Dispositivos</span>
             </a>
-            <a id="nav-recommendations" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+            <a id="nav-recommendations" href="#" aria-label="Recomendaciones" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">explore</span>
                 <span class="text-[10px]">Recomendaciones</span>
             </a>
-            <a id="nav-tourism" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+            <a id="nav-tourism" href="#" aria-label="Turismo" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">map</span>
                 <span class="text-[10px]">Turismo</span>
             </a>
-            <a id="nav-contact" href="#" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+            <a id="nav-contact" href="#" aria-label="Contacto" class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">contact_phone</span>
                 <span class="text-[10px]">Contacto</span>
             </a>
@@ -123,19 +126,44 @@
     <script>
         window.ROOT_PATH = '../';
 
-        // Fallback global por si el JS tarda o falla
+        // Categorías por defecto
+        const defaultCategories = ['Todo', 'Comer', 'Beber', 'Cultura', 'Naturaleza'];
+
+        function renderFilterChips(categories = defaultCategories) {
+            const container = document.getElementById('filter-chips');
+            container.innerHTML = '';
+            categories.forEach(cat => {
+                const chip = document.createElement('button');
+                chip.textContent = cat;
+                chip.className = 'px-4 py-1 rounded-full text-sm whitespace-nowrap bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-primary hover:text-white transition';
+                chip.onclick = () => applyFilter(cat);
+                container.appendChild(chip);
+            });
+        }
+
+        function applyFilter(category) {
+            // Aquí se llamaría a la función que filtra contenido en featured + secciones
+            console.log('Filtrando por:', category);
+        }
+
+        // Fallback global
         document.addEventListener("DOMContentLoaded", () => {
+            renderFilterChips();
+
             const featuredItem = document.getElementById('featured-item');
             const sectionsContainer = document.getElementById('sections-container');
             const noRecs = document.getElementById('no-recommendations');
 
-            // Timeout de 8s para mostrar fallback si no carga nada
-            setTimeout(() => {
-                if (featuredItem && featuredItem.children.length === 0 &&
-                    sectionsContainer && sectionsContainer.children.length === 0) {
+            const showFallback = () => {
+                if ((!featuredItem || featuredItem.children.length === 0) &&
+                    (!sectionsContainer || sectionsContainer.children.length === 0)) {
                     noRecs.classList.remove('hidden');
                 }
-            }, 8000);
+            }
+
+            // Timeout de 8s y primer frame para fallback
+            setTimeout(showFallback, 8000);
+            requestAnimationFrame(showFallback);
         });
     </script>
 
