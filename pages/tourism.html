@@ -67,6 +67,11 @@
             cursor: pointer !important;
             pointer-events: auto !important;
         }
+
+        /* Ajuste del botón flotante sobre la barra inferior */
+        #map-button-container {
+            bottom: calc(1.5rem + env(safe-area-inset-bottom));
+        }
     </style>
 </head>
 
@@ -84,7 +89,6 @@
             <h1 id="page-title"
                 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-wide flex-1 text-center uppercase text-sm">
                 Cargando...</h1>
-            <!-- Botón de cambio de idioma -->
             <button onclick="changeLanguage()" class="flex items-center justify-center size-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800">
                 <span class="material-symbols-outlined">language</span>
             </button>
@@ -123,7 +127,7 @@
     </main>
     
     <!-- Botón flotante del mapa -->
-    <div class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+    <div id="map-button-container" class="fixed left-1/2 transform -translate-x-1/2 z-40">
         <button id="map-button"
             class="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform duration-200">
             <span class="material-symbols-outlined" style="font-size: 20px;">map</span>
@@ -198,7 +202,6 @@
                 <span class="material-symbols-outlined">map</span>
                 <span class="text-[10px]">Cargando...</span>
             </a>
-            <!-- Nuevo elemento de navegación para contacto -->
             <a id="nav-contact" href="#"
                 class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                 <span class="material-symbols-outlined">contact_phone</span>
