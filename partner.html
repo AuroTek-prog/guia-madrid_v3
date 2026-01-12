@@ -25,7 +25,7 @@
     </script>
 
     <style>
-        body { font-family: 'Manrope', sans-serif; }
+        body { font-family: 'Manrope', 'sans-serif'; }
         .zone-card {
             transition: all 0.3s ease;
             cursor: pointer;
@@ -62,6 +62,19 @@
             background-color: #6b7280;
             color: white;
         }
+        .debug-panel {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        .dark .debug-panel {
+            background-color: #1f2937;
+            border-color: #374151;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
@@ -73,6 +86,21 @@
             <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Ve tus locales, las zonas cubiertas y cómo se inyecta tu información en las guías de los alojamientos.
             </p>
+        </div>
+
+        <!-- Panel de depuración (puede ocultarse en producción) -->
+        <div class="debug-panel mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold">Información de Depuración</h3>
+                <button id="toggle-debug" class="text-sm bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 px-2 py-1 rounded">
+                    Ocultar
+                </button>
+            </div>
+            <div id="debug-content">
+                <p>Total de apartamentos: <span id="debug-total-apartments" class="font-bold">0</span></p>
+                <p>Conteo por zona: <span id="debug-zones-count" class="font-bold">Cargando...</span></p>
+                <p>Partners activos: <span id="debug-active-partners" class="font-bold">0</span></p>
+            </div>
         </div>
 
         <!-- Sección de Zonas y Barrios -->
@@ -166,6 +194,7 @@
         let apartmentsData = {};
         let partnersData = [];
         let zonesData = [];
+        let apartmentsByZone = {}; // Variable global para almacenar el conteo por zona
 
         async function loadData() {
             try {
@@ -178,9 +207,13 @@
                 partnersData = await partnersRes.json();
                 zonesData = await zonesRes.json();
                 
+                // CORRECCIÓN: Calcular correctamente los apartamentos por zona
+                calculateApartmentsByZone();
+                
                 renderZones();
                 renderPartners();
                 updateStatistics();
+                updateDebugInfo();
                 setupEventListeners();
             } catch (error) {
                 console.error('Error cargando datos:', error);
@@ -189,18 +222,25 @@
             }
         }
 
+        // CORRECCIÓN: Función para calcular correctamente los apartamentos por zona
+        function calculateApartmentsByZone() {
+            apartmentsByZone = {};
+            
+            // Contar apartamentos por zona
+            Object.values(apartmentsData).forEach(apt => {
+                const zone = apt.zone;
+                if (!apartmentsByZone[zone]) {
+                    apartmentsByZone[zone] = 0;
+                }
+                apartmentsByZone[zone]++;
+            });
+            
+            console.log('Apartamentos por zona:', apartmentsByZone);
+        }
+
         function renderZones() {
             const container = document.getElementById('zones-container');
             container.innerHTML = '';
-
-            // Contar pisos por zona
-            const apartmentsByZone = {};
-            Object.values(apartmentsData).forEach(apt => {
-                if (!apartmentsByZone[apt.zone]) {
-                    apartmentsByZone[apt.zone] = 0;
-                }
-                apartmentsByZone[apt.zone]++;
-            });
 
             // Contar partners por zona
             const partnersByZone = {};
@@ -294,6 +334,20 @@
                     renderPartners();
                 });
             });
+            
+            // Panel de depuración
+            document.getElementById('toggle-debug').addEventListener('click', () => {
+                const debugContent = document.getElementById('debug-content');
+                const toggleBtn = document.getElementById('toggle-debug');
+                
+                if (debugContent.style.display === 'none') {
+                    debugContent.style.display = 'block';
+                    toggleBtn.textContent = 'Ocultar';
+                } else {
+                    debugContent.style.display = 'none';
+                    toggleBtn.textContent = 'Mostrar';
+                }
+            });
         }
 
         function renderPartners() {
@@ -323,18 +377,9 @@
                 return;
             }
 
-            // Contar pisos en las zonas de cada partner
-            const apartmentsByZone = {};
-            Object.values(apartmentsData).forEach(apt => {
-                if (!apartmentsByZone[apt.zone]) {
-                    apartmentsByZone[apt.zone] = 0;
-                }
-                apartmentsByZone[apt.zone]++;
-            });
-
             // Renderizar tarjetas de partners
             filteredPartners.forEach(partner => {
-                // Contar pisos en las zonas del partner
+                // CORRECCIÓN: Contar pisos en las zonas del partner usando la variable global
                 const coveredZones = partner.zones || [];
                 let coveredPisos = 0;
                 coveredZones.forEach(zone => {
@@ -414,6 +459,16 @@
             document.getElementById('top-partners').textContent = topPartners;
             document.getElementById('premium-partners').textContent = premiumPartners;
             document.getElementById('basic-partners').textContent = basicPartners;
+        }
+
+        // CORRECCIÓN: Función para actualizar la información de depuración
+        function updateDebugInfo() {
+            const totalApartments = Object.keys(apartmentsData).length;
+            const activePartners = partnersData.filter(p => p.active).length;
+            
+            document.getElementById('debug-total-apartments').textContent = totalApartments;
+            document.getElementById('debug-zones-count').textContent = JSON.stringify(apartmentsByZone);
+            document.getElementById('debug-active-partners').textContent = activePartners;
         }
 
         window.addEventListener('DOMContentLoaded', loadData);
