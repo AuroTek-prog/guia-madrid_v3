@@ -1,4 +1,4 @@
-// js/main.js - Versión robusta, completa y optimizada (enero 2026)
+// js/main.js - Versión robusta y optimizada (enero 2026)
 
 // ==============================
 // Estado global
@@ -15,13 +15,7 @@ window.appState = {
 // ==============================
 window.t = function(key) {
     if (!window.appState?.translations) return `[${key}]`;
-    const keys = key.split('.');
-    let value = window.appState.translations;
-    for (const k of keys) {
-        value = value?.[k];
-        if (value === undefined) return `[${key}]`;
-    }
-    return value;
+    return key.split('.').reduce((obj, k) => obj?.[k], window.appState.translations) ?? `[${key}]`;
 };
 
 // ==============================
@@ -29,24 +23,15 @@ window.t = function(key) {
 // ==============================
 window.safeText = function(id, value) {
     const el = document.getElementById(id);
-    if (!el) {
-        console.warn(`⚠️ Elemento #${id} no encontrado`);
-        return;
-    }
-    if (value !== undefined && value !== null) {
-        el.textContent = value;
-    }
+    if (!el) return console.warn(`⚠️ Elemento #${id} no encontrado`);
+    if (value !== undefined && value !== null) el.textContent = value;
 };
 
 // ==============================
 // Copiar al portapapeles
 // ==============================
 window.copyToClipboard = function(text) {
-    if (!navigator.clipboard) {
-        console.warn('Clipboard API no soportado');
-        showNotification('Función no disponible');
-        return;
-    }
+    if (!navigator.clipboard) return showNotification('Función no disponible');
     navigator.clipboard.writeText(text)
         .then(() => showNotification(t('common.copied') || 'Copiado'))
         .catch(err => {
@@ -64,13 +49,8 @@ window.showNotification = function(message) {
         'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
     notification.textContent = message;
     document.body.appendChild(notification);
-
-    setTimeout(() => { notification.style.opacity = '0'; }, 2000);
-    setTimeout(() => {
-        if (document.body.contains(notification)) {
-            document.body.removeChild(notification);
-        }
-    }, 2300);
+    setTimeout(() => notification.style.opacity = '0', 2000);
+    setTimeout(() => notification.remove(), 2300);
 };
 
 // ==============================
@@ -80,9 +60,7 @@ window.goBack = function() {
     const params = new URLSearchParams(window.location.search);
     const apartmentId = params.get('apartment') || 'sol-101';
     const lang = params.get('lang') || 'es';
-
-    window.location.href =
-        `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
+    window.location.href = `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
 };
 
 // ==============================
@@ -91,9 +69,7 @@ window.goBack = function() {
 window.changeLanguage = function() {
     const apartmentId = window.appState.apartmentId || 'sol-101';
     const lang = window.appState.lang || 'es';
-
-    window.location.href =
-        `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
+    window.location.href = `${window.ROOT_PATH}index.html?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
 };
 
 // ======================================================
@@ -102,7 +78,6 @@ window.changeLanguage = function() {
 window.setupBottomNavigation = function(apartmentId, lang) {
     const baseUrl = `?apartment=${encodeURIComponent(apartmentId)}&lang=${encodeURIComponent(lang)}`;
     const root = window.ROOT_PATH || './';
-
     const navMap = [
         { id: 'nav-home', href: `${root}index.html${baseUrl}`, key: 'navigation.nav_home' },
         { id: 'nav-devices', href: `${root}pages/devices.html${baseUrl}`, key: 'navigation.devices_title' },
@@ -120,8 +95,7 @@ window.setupBottomNavigation = function(apartmentId, lang) {
             if (span) span.textContent = t(key) || key;
         }
     });
-
-    console.log('Navegación inferior configurada con rutas absolutas:', navMap);
+    console.log('Navegación inferior configurada:', navMap);
 };
 
 // ==============================
@@ -138,9 +112,7 @@ async function initializeApp() {
             fetch(`${window.ROOT_PATH}data/${window.appState.lang}.json`)
         ]);
 
-        if (!apartmentRes.ok || !translationsRes.ok) {
-            throw new Error('Error cargando datos');
-        }
+        if (!apartmentRes.ok || !translationsRes.ok) throw new Error('Error cargando datos');
 
         window.appState.apartmentData = await apartmentRes.json();
         window.appState.translations = await translationsRes.json();
@@ -148,9 +120,7 @@ async function initializeApp() {
         if (!window.appState.apartmentData[window.appState.apartmentId]) {
             console.warn(`Apartamento "${window.appState.apartmentId}" no encontrado → usando default`);
             window.appState.apartmentId = 'sol-101';
-            if (!window.appState.apartmentData['sol-101']) {
-                throw new Error('Default sol-101 no existe');
-            }
+            if (!window.appState.apartmentData['sol-101']) throw new Error('Default sol-101 no existe');
         }
 
         document.documentElement.lang = window.appState.lang;
@@ -161,7 +131,6 @@ async function initializeApp() {
                 renderPage();
             }
         }, 100);
-
         setTimeout(() => clearInterval(wait), 5000);
 
     } catch (error) {
@@ -187,9 +156,14 @@ document.addEventListener('DOMContentLoaded', initializeApp);
 // =====================================================
 let __zonesCache = null;
 
-async function getApartmentZone(apartment, tolerance = 0.0005) {
+/**
+ * Detecta la zona donde se encuentra un apartamento.
+ * @param {Object} apartment {lat, lng}
+ * @param {number} tolerance Tolerancia en grados para cerrar polígonos
+ * @returns {Promise<Object|null>} Zona encontrada o null
+ */
+async function getApartmentZone(apartment, tolerance = 0.0007) {
     if (!apartment?.lat || !apartment?.lng) return null;
-
     const lat = Number(apartment.lat);
     const lng = Number(apartment.lng);
     if (isNaN(lat) || isNaN(lng)) return null;
@@ -204,17 +178,18 @@ async function getApartmentZone(apartment, tolerance = 0.0005) {
         const point = turf.point([lng, lat]);
 
         for (const zone of __zonesCache) {
-            if (!zone?.polygon?.length || zone.polygon.length < 3) continue;
+            if (!Array.isArray(zone?.polygon) || zone.polygon.length < 3) continue;
 
-            let coords = zone.polygon.map(p => [Number(p[0]), Number(p[1])]);
+            let coords = zone.polygon.map(p => [Number(p[0]), Number(p[1])]).filter(c => !c.some(isNaN));
+            if (coords.length < 3) continue;
+
             const first = coords[0];
             const last = coords[coords.length - 1];
             if (Math.abs(first[0] - last[0]) > tolerance || Math.abs(first[1] - last[1]) > tolerance) {
-                coords = [...coords, first];
+                coords.push(first);
             }
 
-            const polygon = turf.polygon([coords]);
-            if (turf.booleanPointInPolygon(point, polygon)) {
+            if (turf.booleanPointInPolygon(point, turf.polygon([coords]))) {
                 console.log(`Zona detectada: ${zone.name} (id: ${zone.id})`);
                 return zone;
             }
@@ -222,6 +197,7 @@ async function getApartmentZone(apartment, tolerance = 0.0005) {
 
         console.log('No se encontró zona para:', { lat, lng });
         return null;
+
     } catch (err) {
         console.error('Error cargando/detectando zona:', err);
         return null;
