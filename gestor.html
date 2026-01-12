@@ -26,17 +26,135 @@
 
     <style>
         body { font-family: 'Manrope', sans-serif; }
+        .apartment-card {
+            transition: all 0.3s ease;
+        }
+        .apartment-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-active {
+            background-color: #10b981;
+        }
+        .status-inactive {
+            background-color: #ef4444;
+        }
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+        .preview-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .zone-tag {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: #e5e7eb;
+            color: #374151;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        .dark .zone-tag {
+            background-color: #4b5563;
+            color: #d1d5db;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
 
-    <div class="container mx-auto px-4 py-12 max-w-6xl">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Header -->
-        <div class="text-center mb-12">
+        <div class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-bold text-primary mb-4">Mis Guías Digitales</h1>
             <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Todas tus guías personalizadas en un solo lugar. Copia el enlace y compártelo con tus huéspedes.
             </p>
+        </div>
+
+        <!-- Estadísticas generales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-primary" id="total-apartments">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Total de Pisos</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-green-500" id="active-apartments">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Pisos Activos</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-amber-500" id="devices-count">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Dispositivos Raixer</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-blue-500" id="zones-count">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Zonas Cubiertas</div>
+            </div>
+        </div>
+
+        <!-- Barra de herramientas -->
+        <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md mb-8">
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Buscador -->
+                <div class="flex-1 relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                    <input type="text" id="search-input" placeholder="Buscar por nombre o dirección..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <!-- Filtro por zona -->
+                <div class="relative">
+                    <select id="zone-filter" class="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 py-2 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">Todas las zonas</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+                </div>
+                
+                <!-- Ordenar -->
+                <div class="relative">
+                    <select id="sort-select" class="appearance-none bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 py-2 px-4 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="name">Ordenar por nombre</option>
+                        <option value="zone">Ordenar por zona</option>
+                        <option value="status">Ordenar por estado</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">sort</span>
+                </div>
+                
+                <!-- Vista previa global -->
+                <button id="preview-all-btn" class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors">
+                    <span class="material-symbols-outlined align-middle text-sm mr-1">preview</span>
+                    Vista previa global
+                </button>
+            </div>
         </div>
 
         <!-- Lista dinámica de apartamentos -->
@@ -70,60 +188,278 @@
         </footer>
     </div>
 
+    <!-- Modal de vista previa -->
+    <div id="preview-modal" class="preview-modal">
+        <div class="preview-content">
+            <span class="close-modal">&times;</span>
+            <h2 class="text-2xl font-bold mb-4">Vista Previa de la Guía</h2>
+            <div id="preview-frame" class="border border-gray-300 rounded-lg overflow-hidden" style="height: 600px;">
+                <!-- Aquí se cargará la vista previa -->
+            </div>
+        </div>
+    </div>
+
     <!-- Script dinámico -->
     <script>
-        async function loadApartments() {
+        let apartmentsData = {};
+        let zonesData = [];
+        let filteredApartments = [];
+
+        async function loadData() {
             try {
-                const response = await fetch('data/apartments.json');
-                if (!response.ok) throw new Error('No se pudo cargar apartments.json');
-                const apartments = await response.json();
-
-                const list = document.getElementById('apartments-list');
-                list.innerHTML = '';
-
-                Object.entries(apartments).forEach(([slug, apt]) => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300';
-
-                    const bgImage = apt.images?.portada 
-                        ? `url(${apt.images.portada})` 
-                        : 'ur[](https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
-
-                    const guideUrl = `https://aurotek-prog.github.io/guia-madrid_v3/?apartment=${slug}`;
-
-                    card.innerHTML = `
-                        <div class="h-48 bg-cover bg-center" style="background-image: ${bgImage};"></div>
-                        <div class="p-6">
-                            <h2 class="text-xl font-semibold mb-2">${apt.name || 'Apartamento sin nombre'}</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${apt.address || 'Dirección no disponible'}</p>
-                            
-                            <a href="${guideUrl}" target="_blank"
-                               class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors mb-3">
-                                Abrir Guía
-                            </a>
-                            
-                            <button onclick="navigator.clipboard.writeText('${guideUrl}').then(() => alert('Enlace copiado!'))"
-                                    class="block w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-3 px-6 rounded-xl text-center transition-colors">
-                                Copiar Enlace
-                            </button>
-                        </div>
-                    `;
-
-                    list.appendChild(card);
-                });
-
-                if (Object.keys(apartments).length === 0) {
-                    list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">Aún no hay apartamentos configurados.</p>';
-                }
-
+                const [apartmentsRes, zonesRes] = await Promise.all([
+                    fetch('data/apartments.json'),
+                    fetch('data/zones.json')
+                ]);
+                
+                apartmentsData = await apartmentsRes.json();
+                zonesData = await zonesRes.json();
+                
+                // Inicializar filteredApartments con todos los apartamentos
+                filteredApartments = Object.entries(apartmentsData).map(([slug, apt]) => ({
+                    slug,
+                    ...apt,
+                    active: apt.active !== false // Por defecto, considerar activo si no se especifica lo contrario
+                }));
+                
+                renderApartments();
+                updateStatistics();
+                populateZoneFilter();
+                setupEventListeners();
             } catch (error) {
-                console.error('Error cargando apartamentos:', error);
+                console.error('Error cargando datos:', error);
                 document.getElementById('apartments-list').innerHTML = 
                     '<p class="text-center text-red-600 col-span-full py-12">Error al cargar la lista. Refresca la página.</p>';
             }
         }
 
-        window.addEventListener('DOMContentLoaded', loadApartments);
+        function renderApartments() {
+            const list = document.getElementById('apartments-list');
+            list.innerHTML = '';
+
+            if (filteredApartments.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No se encontraron apartamentos que coincidan con los filtros.</p>';
+                return;
+            }
+
+            filteredApartments.forEach(apt => {
+                const card = document.createElement('div');
+                card.className = 'apartment-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300';
+
+                const bgImage = apt.images?.portada 
+                    ? `url(${apt.images.portada})` 
+                    : 'url(https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
+
+                const guideUrl = `https://aurotek-prog.github.io/guia-madrid_v3/?apartment=${apt.slug}`;
+                const hasRaixer = apt.raixerDevices && apt.raixerDevices.length > 0;
+                const zoneName = getZoneName(apt.zone);
+
+                card.innerHTML = `
+                    <div class="h-48 bg-cover bg-center relative" style="background-image: ${bgImage};">
+                        <div class="absolute top-3 right-3">
+                            <span class="status-indicator ${apt.active ? 'status-active' : 'status-inactive'}"></span>
+                            <span class="text-white text-sm font-medium">${apt.active ? 'Activo' : 'Inactivo'}</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-2">${apt.name || 'Apartamento sin nombre'}</h2>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                            <span class="material-symbols-outlined align-middle text-sm mr-1">location_on</span>
+                            ${apt.address || 'Dirección no disponible'}
+                        </p>
+                        
+                        <div class="flex items-center mb-3">
+                            <span class="material-symbols-outlined align-middle text-sm mr-1 text-gray-500">map</span>
+                            <span class="zone-tag">${zoneName || 'Sin zona'}</span>
+                            ${hasRaixer ? `
+                                <span class="material-symbols-outlined align-middle text-sm ml-2 text-blue-500" title="Tiene dispositivo Raixer">devices</span>
+                            ` : ''}
+                        </div>
+                        
+                        <div class="flex gap-2 mb-4">
+                            <button onclick="openPreview('${apt.slug}')" 
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-center transition-colors">
+                                <span class="material-symbols-outlined align-middle text-sm mr-1">preview</span>
+                                Vista previa
+                            </button>
+                            <button onclick="copyLink('${guideUrl}')" 
+                                    class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-center transition-colors">
+                                <span class="material-symbols-outlined align-middle text-sm mr-1">link</span>
+                                Copiar
+                            </button>
+                        </div>
+                        
+                        <a href="${guideUrl}" target="_blank"
+                           class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-center transition-colors">
+                            <span class="material-symbols-outlined align-middle text-sm mr-1">open_in_new</span>
+                            Abrir Guía
+                        </a>
+                    </div>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+        function getZoneName(zoneId) {
+            const zone = zonesData.find(z => z.id === zoneId);
+            return zone ? zone.name : zoneId;
+        }
+
+        function updateStatistics() {
+            const totalApartments = filteredApartments.length;
+            const activeApartments = filteredApartments.filter(apt => apt.active).length;
+            const devicesCount = filteredApartments.filter(apt => apt.raixerDevices && apt.raixerDevices.length > 0).length;
+            const uniqueZones = [...new Set(filteredApartments.map(apt => apt.zone).filter(Boolean))].length;
+            
+            document.getElementById('total-apartments').textContent = totalApartments;
+            document.getElementById('active-apartments').textContent = activeApartments;
+            document.getElementById('devices-count').textContent = devicesCount;
+            document.getElementById('zones-count').textContent = uniqueZones;
+        }
+
+        function populateZoneFilter() {
+            const zoneFilter = document.getElementById('zone-filter');
+            const uniqueZones = [...new Set(filteredApartments.map(apt => apt.zone).filter(Boolean))];
+            
+            uniqueZones.forEach(zoneId => {
+                const option = document.createElement('option');
+                option.value = zoneId;
+                option.textContent = getZoneName(zoneId);
+                zoneFilter.appendChild(option);
+            });
+        }
+
+        function filterApartments() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const zoneFilter = document.getElementById('zone-filter').value;
+            
+            filteredApartments = Object.entries(apartmentsData)
+                .map(([slug, apt]) => ({
+                    slug,
+                    ...apt,
+                    active: apt.active !== false
+                }))
+                .filter(apt => {
+                    const matchesSearch = !searchTerm || 
+                        (apt.name && apt.name.toLowerCase().includes(searchTerm)) || 
+                        (apt.address && apt.address.toLowerCase().includes(searchTerm));
+                    
+                    const matchesZone = !zoneFilter || apt.zone === zoneFilter;
+                    
+                    return matchesSearch && matchesZone;
+                });
+            
+            sortApartments();
+            renderApartments();
+            updateStatistics();
+        }
+
+        function sortApartments() {
+            const sortBy = document.getElementById('sort-select').value;
+            
+            filteredApartments.sort((a, b) => {
+                switch (sortBy) {
+                    case 'name':
+                        return (a.name || '').localeCompare(b.name || '');
+                    case 'zone':
+                        return (a.zone || '').localeCompare(b.zone || '');
+                    case 'status':
+                        return (b.active ? 1 : 0) - (a.active ? 1 : 0);
+                    default:
+                        return 0;
+                }
+            });
+        }
+
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                // Crear notificación temporal en lugar de alert
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+                notification.textContent = 'Enlace copiado correctamente';
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }).catch(err => {
+                console.error('Error al copiar el enlace: ', err);
+            });
+        }
+
+        function openPreview(slug) {
+            const modal = document.getElementById('preview-modal');
+            const frame = document.getElementById('preview-frame');
+            
+            // Crear un iframe con la guía
+            frame.innerHTML = `<iframe src="?apartment=${slug}" style="width: 100%; height: 100%; border: none;"></iframe>`;
+            
+            // Mostrar el modal
+            modal.style.display = 'block';
+        }
+
+        function setupEventListeners() {
+            // Buscador
+            document.getElementById('search-input').addEventListener('input', filterApartments);
+            
+            // Filtro por zona
+            document.getElementById('zone-filter').addEventListener('change', filterApartments);
+            
+            // Ordenar
+            document.getElementById('sort-select').addEventListener('change', () => {
+                sortApartments();
+                renderApartments();
+            });
+            
+            // Vista previa global
+            document.getElementById('preview-all-btn').addEventListener('click', () => {
+                const modal = document.getElementById('preview-modal');
+                const frame = document.getElementById('preview-frame');
+                
+                // Crear una vista previa con todos los apartamentos
+                let previewHtml = '<div class="p-4">';
+                previewHtml += '<h3 class="text-xl font-bold mb-4">Todas las Guías Disponibles</h3>';
+                previewHtml += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                
+                filteredApartments.forEach(apt => {
+                    const guideUrl = `?apartment=${apt.slug}`;
+                    const bgImage = apt.images?.portada || 'https://via.placeholder.com/400x250/1152d4/ffffff?text=Sin+Foto';
+                    
+                    previewHtml += `
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                            <div class="h-32 bg-cover bg-center" style="background-image: url(${bgImage});"></div>
+                            <div class="p-3">
+                                <h4 class="font-semibold">${apt.name || 'Apartamento sin nombre'}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">${apt.address || 'Dirección no disponible'}</p>
+                                <a href="${guideUrl}" target="_blank" class="inline-block mt-2 text-primary text-sm font-medium">Ver guía</a>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                previewHtml += '</div></div>';
+                frame.innerHTML = previewHtml;
+                
+                // Mostrar el modal
+                modal.style.display = 'block';
+            });
+            
+            // Cerrar modal
+            document.querySelector('.close-modal').addEventListener('click', () => {
+                document.getElementById('preview-modal').style.display = 'none';
+            });
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener('click', (event) => {
+                const modal = document.getElementById('preview-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 
 </body>
