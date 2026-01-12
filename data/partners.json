@@ -202,24 +202,6 @@
     "redirectUrl": "https://casadediego.com/contacto"
   },
   {
-    "id": "rest-004",
-    "name": "El Mercado de la Reina",
-    "type": "restaurant",
-    "description": "Gastronomía variada en ambiente moderno en la Gran Vía",
-    "image": "assets/images/partners/rest-004.jpg",
-    "lat": 40.4201,
-    "lng": -3.7055,
-    "zones": ["granvia"],
-    "active": true,
-    "global": false,
-    "plan": "basic",
-    "offer": "Menú del día con descuento",
-    "distanceKey": "4 min walk",
-    "priceRange": "$$",
-    "categoryKey": "eat",
-    "redirectUrl": "tel:+34919876543"
-  },
-  {
     "id": "cafe-004",
     "name": "Café Comercial",
     "type": "coffee_shop",

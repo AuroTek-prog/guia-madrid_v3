@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión CON PARTNER-TOP: Sin texto de rotación + Tarjetas clicables
+// js/recommendations.js - Versión CORREGIDA: Rutas de imágenes con ROOT_PATH
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
@@ -194,8 +194,10 @@ async function renderFilteredContent() {
             hasContent = true;
             const featuredItem = document.getElementById('featured-item');
             if (featuredItem) {
+                // CORRECCIÓN: Añadir window.ROOT_PATH a la ruta de la imagen
+                const imageUrl = partnerOfDay.image ? `${window.ROOT_PATH}${partnerOfDay.image}` : "https://via.placeholder.com/600x300?text=Sin+imagen";
                 featuredItem.innerHTML = `
-                    <div class="h-48 bg-cover bg-center" style="background-image: url('${partnerOfDay.image || "https://via.placeholder.com/600x300?text=Sin+imagen"}')"></div>
+                    <div class="h-48 bg-cover bg-center" style="background-image: url('${imageUrl}')"></div>
                     <div class="p-5">
                         <div class="flex items-center gap-2 mb-2">
                             <span class="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">Destacado</span>
@@ -212,7 +214,7 @@ async function renderFilteredContent() {
                 featuredItem.onclick = () => {
                     console.log(`Clicked on partner: ${partnerOfDay.name}`);
                     // Futura implementación de redirección
-                     if (partnerOfDay.redirectUrl) {
+                    if (partnerOfDay.redirectUrl) {
                         window.open(partnerOfDay.redirectUrl, '_blank');
                  }
                 };
@@ -232,8 +234,10 @@ async function renderFilteredContent() {
             premiumPartners.forEach(partner => {
                 const card = document.createElement('div');
                 card.className = 'snap-start w-64 shrink-0 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30 cursor-pointer';
+                // CORRECCIÓN: Añadir window.ROOT_PATH a la ruta de la imagen
+                const imageUrl = partner.image ? `${window.ROOT_PATH}${partner.image}` : "https://via.placeholder.com/300x150?text=Sin+imagen";
                 card.innerHTML = `
-                    <div class="h-32 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/300x150?text=Sin+imagen"}')"></div>
+                    <div class="h-32 bg-cover bg-center" style="background-image: url('${imageUrl}')"></div>
                     <div class="p-4">
                         <span class="inline-block bg-primary text-white text-xs font-bold px-2 py-1 rounded mb-2">Premium</span>
                         <h4 class="text-base font-semibold mb-1">${partner.name}</h4>
@@ -245,9 +249,9 @@ async function renderFilteredContent() {
                 card.onclick = () => {
                     console.log(`Clicked on partner: ${partner.name}`);
                     // Futura implementación de redirección
-                    if (partner.redirectUrl) {
-                        window.open(partner.redirectUrl, '_blank');
-                 }
+                     if (partner.redirectUrl) {
+                         window.open(partner.redirectUrl, '_blank');
+                     }
                 };
                 
                 premiumContainer.appendChild(card);
@@ -270,8 +274,10 @@ async function renderFilteredContent() {
             basicPartners.forEach(partner => {
                 const card = document.createElement('div');
                 card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer';
+                // CORRECCIÓN: Añadir window.ROOT_PATH a la ruta de la imagen
+                const imageUrl = partner.image ? `${window.ROOT_PATH}${partner.image}` : "https://via.placeholder.com/400x200?text=Sin+imagen";
                 card.innerHTML = `
-                    <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
+                    <div class="h-40 bg-cover bg-center" style="background-image: url('${imageUrl}')"></div>
                     <div class="p-5">
                         <h4 class="text-lg font-semibold mb-2">${partner.name}</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
@@ -283,9 +289,9 @@ async function renderFilteredContent() {
                 card.onclick = () => {
                     console.log(`Clicked on partner: ${partner.name}`);
                     // Futura implementación de redirección
-                    if (partner.redirectUrl) {
+                     if (partner.redirectUrl) {
                         window.open(partner.redirectUrl, '_blank');
-                    }
+                 }
                 };
                 
                 basicContainer.appendChild(card);
