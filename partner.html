@@ -26,17 +26,103 @@
 
     <style>
         body { font-family: 'Manrope', sans-serif; }
+        .zone-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .zone-card:hover {
+            transform: translateY(-5px);
+        }
+        .zone-card.active {
+            border-color: #1152d4;
+            box-shadow: 0 0 0 3px rgba(17, 82, 212, 0.2);
+        }
+        .partner-card {
+            transition: all 0.3s ease;
+        }
+        .partner-card:hover {
+            transform: translateY(-5px);
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-top {
+            background: linear-gradient(to right, #f59e0b, #f97316);
+            color: white;
+        }
+        .badge-premium {
+            background-color: #1152d4;
+            color: white;
+        }
+        .badge-basic {
+            background-color: #6b7280;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
 
-    <div class="container mx-auto px-4 py-12 max-w-6xl">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Header -->
-        <div class="text-center mb-12">
+        <div class="text-center mb-10">
             <h1 class="text-4xl md:text-5xl font-bold text-primary mb-4">Panel para Partners Comerciales</h1>
             <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                 Ve tus locales, las zonas cubiertas y cómo se inyecta tu información en las guías de los alojamientos.
             </p>
+        </div>
+
+        <!-- Sección de Zonas y Barrios -->
+        <div class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-center">Zonas y Barrios Disponibles</h2>
+            <div id="zones-container" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <!-- Las tarjetas de zonas se generan aquí automáticamente -->
+            </div>
+            <div class="mt-4 text-center">
+                <button id="clear-filter" class="hidden bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors">
+                    <span class="material-symbols-outlined align-middle text-sm mr-1">clear</span>
+                    Limpiar filtro
+                </button>
+            </div>
+        </div>
+
+        <!-- Estadísticas generales -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-primary" id="total-partners">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Partners Totales</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-amber-500" id="top-partners">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Partners Top</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-blue-500" id="premium-partners">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Partners Premium</div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md text-center">
+                <div class="text-3xl font-bold text-gray-500" id="basic-partners">0</div>
+                <div class="text-sm text-gray-600 dark:text-gray-400">Partners Básicos</div>
+            </div>
+        </div>
+
+        <!-- Filtros adicionales -->
+        <div class="mb-8 flex flex-wrap gap-2 justify-center">
+            <button class="filter-btn active bg-primary text-white font-medium py-2 px-4 rounded-lg transition-colors" data-filter="all">
+                Todos
+            </button>
+            <button class="filter-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors" data-filter="top">
+                Partners Top
+            </button>
+            <button class="filter-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors" data-filter="premium">
+                Partners Premium
+            </button>
+            <button class="filter-btn bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg transition-colors" data-filter="basic">
+                Partners Básicos
+            </button>
         </div>
 
         <!-- Lista dinámica de partners -->
@@ -56,6 +142,8 @@
                         <li>Cambia <code>"id"</code> a algo único (ej. "rest-003")</li>
                         <li>Actualiza nombre, descripción, image, lat, lng, zones</li>
                         <li>Setea <code>"active": true</code> para mostrarlo</li>
+                        <li>Define el plan: <code>"plan": "top"</code>, <code>"plan": "premium"</code> o <code>"plan": "basic"</code></li>
+                        <li>Para partners top, añade <code>"isTop": true</code></li>
                     </ul>
                 </li>
                 <li>Push → ¡aparece automáticamente aquí y en las guías!</li>
@@ -73,57 +161,27 @@
 
     <!-- Script dinámico -->
     <script>
-        async function loadPartners() {
+        let currentZoneFilter = null;
+        let currentPlanFilter = 'all';
+        let apartmentsData = {};
+        let partnersData = [];
+        let zonesData = [];
+
+        async function loadData() {
             try {
                 const [apartmentsRes, partnersRes, zonesRes] = await Promise.all([
                     fetch('data/apartments.json'),
                     fetch('data/partners.json'),
                     fetch('data/zones.json')
                 ]);
-                const apartments = await apartmentsRes.json();
-                const partners = await partnersRes.json();
-                const zones = await zonesRes.json();
-
-                const list = document.getElementById('partners-list');
-                list.innerHTML = '';
-
-                partners.forEach(partner => {
-                    if (!partner.active) return; // Solo activos
-
-                    // Contar pisos en sus zonas
-                    const coveredZones = partner.zones || [];
-                    const coveredPisos = Object.values(apartments).filter(apt => {
-                        return coveredZones.includes(apt.zone);
-                    }).length;
-
-                    const card = document.createElement('div');
-                    card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow';
-
-                    const bgImage = partner.image 
-                        ? `url(${partner.image})` 
-                        : 'ur[](https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
-
-                    card.innerHTML = `
-                        <div class="h-48 bg-cover bg-center" style="background-image: ${bgImage};"></div>
-                        <div class="p-6">
-                            <h2 class="text-xl font-semibold mb-2">${partner.name || 'Partner sin nombre'}</h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">${partner.description || 'Descripción no disponible'}</p>
-                            <p class="text-sm font-medium mb-4">Zonas cubiertas: ${coveredZones.join(', ') || 'Ninguna'}</p>
-                            <p class="text-primary font-bold mb-4">${coveredPisos} pisos recibirán tu info</p>
-                            <a href="?apartment=example-piso&zone=${coveredZones[0] || ''}" target="_blank"
-                               class="block w-full bg-primary hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl text-center transition-colors">
-                                Ver inyección en guía de ejemplo
-                            </a>
-                        </div>
-                    `;
-
-                    list.appendChild(card);
-                });
-
-                if (partners.length === 0) {
-                    list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No hay partners configurados. Añade en partners.json.</p>';
-                }
-
+                apartmentsData = await apartmentsRes.json();
+                partnersData = await partnersRes.json();
+                zonesData = await zonesRes.json();
+                
+                renderZones();
+                renderPartners();
+                updateStatistics();
+                setupEventListeners();
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 document.getElementById('partners-list').innerHTML = 
@@ -131,7 +189,234 @@
             }
         }
 
-        window.addEventListener('DOMContentLoaded', loadPartners);
+        function renderZones() {
+            const container = document.getElementById('zones-container');
+            container.innerHTML = '';
+
+            // Contar pisos por zona
+            const apartmentsByZone = {};
+            Object.values(apartmentsData).forEach(apt => {
+                if (!apartmentsByZone[apt.zone]) {
+                    apartmentsByZone[apt.zone] = 0;
+                }
+                apartmentsByZone[apt.zone]++;
+            });
+
+            // Contar partners por zona
+            const partnersByZone = {};
+            partnersData.forEach(partner => {
+                if (!partner.active) return;
+                
+                (partner.zones || []).forEach(zone => {
+                    if (!partnersByZone[zone]) {
+                        partnersByZone[zone] = 0;
+                    }
+                    partnersByZone[zone]++;
+                });
+            });
+
+            // Crear tarjetas de zona
+            zonesData.forEach(zone => {
+                const apartmentsCount = apartmentsByZone[zone.id] || 0;
+                const partnersCount = partnersByZone[zone.id] || 0;
+                
+                const card = document.createElement('div');
+                card.className = 'zone-card bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border-2 border-transparent';
+                card.dataset.zone = zone.id;
+                
+                card.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">${zone.name}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Barrios: ${zone.barrios.join(', ')}</p>
+                    <div class="flex justify-between text-sm">
+                        <span class="font-medium">${apartmentsCount} pisos</span>
+                        <span class="font-medium">${partnersCount} partners</span>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    filterByZone(zone.id);
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        function filterByZone(zoneId) {
+            // Actualizar filtro de zona
+            currentZoneFilter = currentZoneFilter === zoneId ? null : zoneId;
+            
+            // Actualizar estado visual de las tarjetas de zona
+            document.querySelectorAll('.zone-card').forEach(card => {
+                if (card.dataset.zone === currentZoneFilter) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+            
+            // Mostrar/ocultar botón de limpiar filtro
+            const clearBtn = document.getElementById('clear-filter');
+            if (currentZoneFilter) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            
+            // Aplicar filtros y renderizar partners
+            renderPartners();
+        }
+
+        function setupEventListeners() {
+            // Botón de limpiar filtro
+            document.getElementById('clear-filter').addEventListener('click', () => {
+                currentZoneFilter = null;
+                document.querySelectorAll('.zone-card').forEach(card => {
+                    card.classList.remove('active');
+                });
+                document.getElementById('clear-filter').classList.add('hidden');
+                renderPartners();
+            });
+            
+            // Botones de filtro por plan
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Actualizar estado visual
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('active', 'bg-primary', 'text-white');
+                        b.classList.add('bg-gray-200', 'hover:bg-gray-300', 'dark:bg-gray-700', 'dark:hover:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                    });
+                    
+                    btn.classList.add('active', 'bg-primary', 'text-white');
+                    btn.classList.remove('bg-gray-200', 'hover:bg-gray-300', 'dark:bg-gray-700', 'dark:hover:bg-gray-600', 'text-gray-800', 'dark:text-gray-200');
+                    
+                    // Actualizar filtro
+                    currentPlanFilter = btn.dataset.filter;
+                    renderPartners();
+                });
+            });
+        }
+
+        function renderPartners() {
+            const list = document.getElementById('partners-list');
+            list.innerHTML = '';
+
+            // Filtrar partners
+            let filteredPartners = partnersData.filter(partner => partner.active);
+            
+            // Aplicar filtro de zona si hay uno activo
+            if (currentZoneFilter) {
+                filteredPartners = filteredPartners.filter(partner => 
+                    partner.zones && partner.zones.includes(currentZoneFilter)
+                );
+            }
+            
+            // Aplicar filtro de plan si no es "all"
+            if (currentPlanFilter !== 'all') {
+                filteredPartners = filteredPartners.filter(partner => 
+                    partner.plan === currentPlanFilter
+                );
+            }
+
+            // Si no hay partners después de filtrar
+            if (filteredPartners.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-500 col-span-full py-12">No hay partners que coincidan con los filtros seleccionados.</p>';
+                return;
+            }
+
+            // Contar pisos en las zonas de cada partner
+            const apartmentsByZone = {};
+            Object.values(apartmentsData).forEach(apt => {
+                if (!apartmentsByZone[apt.zone]) {
+                    apartmentsByZone[apt.zone] = 0;
+                }
+                apartmentsByZone[apt.zone]++;
+            });
+
+            // Renderizar tarjetas de partners
+            filteredPartners.forEach(partner => {
+                // Contar pisos en las zonas del partner
+                const coveredZones = partner.zones || [];
+                let coveredPisos = 0;
+                coveredZones.forEach(zone => {
+                    coveredPisos += apartmentsByZone[zone] || 0;
+                });
+
+                // Determinar tipo de badge
+                let badgeClass = 'badge-basic';
+                let badgeText = 'Básico';
+                
+                if (partner.plan === 'top' || partner.isTop) {
+                    badgeClass = 'badge-top';
+                    badgeText = 'Top';
+                } else if (partner.plan === 'premium' || partner.global) {
+                    badgeClass = 'badge-premium';
+                    badgeText = 'Premium';
+                }
+
+                // Crear tarjeta
+                const card = document.createElement('div');
+                card.className = 'partner-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden';
+
+                const bgImage = partner.image 
+                    ? `url(${partner.image})` 
+                    : 'url(https://via.placeholder.com/800x500/1152d4/ffffff?text=Sin+Foto)';
+
+                card.innerHTML = `
+                    <div class="h-48 bg-cover bg-center relative" style="background-image: ${bgImage};">
+                        <div class="absolute top-3 right-3">
+                            <span class="badge ${badgeClass}">${badgeText}</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h2 class="text-xl font-semibold mb-2">${partner.name || 'Partner sin nombre'}</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">${partner.description || 'Descripción no disponible'}</p>
+                        
+                        <div class="mb-4">
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <span class="material-symbols-outlined text-sm mr-1">location_on</span>
+                                Zonas: ${coveredZones.join(', ') || 'Ninguna'}
+                            </div>
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                <span class="material-symbols-outlined text-sm mr-1">apartment</span>
+                                ${coveredPisos} pisos recibirán tu info
+                            </div>
+                            <div class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                                <span class="material-symbols-outlined text-sm mr-1">local_offer</span>
+                                ${partner.offer || 'Sin oferta especial'}
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-2">
+                            <a href="?apartment=example-piso&zone=${coveredZones[0] || ''}" target="_blank"
+                               class="flex-1 bg-primary hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-center transition-colors">
+                                Ver en guía
+                            </a>
+                            ${partner.redirectUrl ? 
+                                `<a href="${partner.redirectUrl}" target="_blank"
+                                   class="flex-1 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-medium py-2 px-4 rounded-lg text-center transition-colors">
+                                    Reservar
+                                </a>` : ''}
+                        </div>
+                    </div>
+                `;
+
+                list.appendChild(card);
+            });
+        }
+
+        function updateStatistics() {
+            const totalPartners = partnersData.filter(p => p.active).length;
+            const topPartners = partnersData.filter(p => p.active && (p.plan === 'top' || p.isTop)).length;
+            const premiumPartners = partnersData.filter(p => p.active && (p.plan === 'premium' || p.global)).length;
+            const basicPartners = partnersData.filter(p => p.active && p.plan === 'basic').length;
+            
+            document.getElementById('total-partners').textContent = totalPartners;
+            document.getElementById('top-partners').textContent = topPartners;
+            document.getElementById('premium-partners').textContent = premiumPartners;
+            document.getElementById('basic-partners').textContent = basicPartners;
+        }
+
+        window.addEventListener('DOMContentLoaded', loadData);
     </script>
 
 </body>
