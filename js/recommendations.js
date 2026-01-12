@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión CON PARTNER-TOP: Rotación diaria + Fijo + Carrusel
+// js/recommendations.js - Versión CON PARTNER-TOP: Sin texto de rotación + Tarjetas clicables
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
@@ -198,8 +198,7 @@ async function renderFilteredContent() {
                     <div class="h-48 bg-cover bg-center" style="background-image: url('${partnerOfDay.image || "https://via.placeholder.com/600x300?text=Sin+imagen"}')"></div>
                     <div class="p-5">
                         <div class="flex items-center gap-2 mb-2">
-                            <span class="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">Partner del Día</span>
-                            ${topPartners.length > 1 ? `<span class="text-xs text-gray-500">Rotación diaria (${topPartners.length} partners)</span>` : ''}
+                            <span class="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">Destacado</span>
                         </div>
                         <h4 class="text-xl font-bold mb-2">${partnerOfDay.name}</h4>
                         <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partnerOfDay.description || ''}</p>
@@ -207,6 +206,16 @@ async function renderFilteredContent() {
                         <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">${partnerOfDay.distanceKey || ''}</p>
                     </div>
                 `;
+                
+                // Hacer la tarjeta clicable
+                featuredItem.style.cursor = 'pointer';
+                featuredItem.onclick = () => {
+                    console.log(`Clicked on partner: ${partnerOfDay.name}`);
+                    // Futura implementación de redirección
+                     if (partnerOfDay.redirectUrl) {
+                        window.open(partnerOfDay.redirectUrl, '_blank');
+                 }
+                };
             }
         }
 
@@ -222,7 +231,7 @@ async function renderFilteredContent() {
             
             premiumPartners.forEach(partner => {
                 const card = document.createElement('div');
-                card.className = 'snap-start w-64 shrink-0 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30';
+                card.className = 'snap-start w-64 shrink-0 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30 cursor-pointer';
                 card.innerHTML = `
                     <div class="h-32 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/300x150?text=Sin+imagen"}')"></div>
                     <div class="p-4">
@@ -231,6 +240,16 @@ async function renderFilteredContent() {
                         <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${partner.description || ''}</p>
                         <p class="text-primary font-medium mt-2">${partner.offer || 'Oferta disponible'}</p>
                     </div>`;
+                
+                // Hacer la tarjeta clicable
+                card.onclick = () => {
+                    console.log(`Clicked on partner: ${partner.name}`);
+                    // Futura implementación de redirección
+                    if (partner.redirectUrl) {
+                        window.open(partner.redirectUrl, '_blank');
+                 }
+                };
+                
                 premiumContainer.appendChild(card);
             });
             
@@ -250,7 +269,7 @@ async function renderFilteredContent() {
 
             basicPartners.forEach(partner => {
                 const card = document.createElement('div');
-                card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow';
+                card.className = 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer';
                 card.innerHTML = `
                     <div class="h-40 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/400x200?text=Sin+imagen"}')"></div>
                     <div class="p-5">
@@ -259,6 +278,16 @@ async function renderFilteredContent() {
                         <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
                         ${partner.zones ? `<p class="text-xs text-gray-500 dark:text-gray-500 mt-2">Zona: ${partner.zones.join(', ')}</p>` : ''}
                     </div>`;
+                
+                // Hacer la tarjeta clicable
+                card.onclick = () => {
+                    console.log(`Clicked on partner: ${partner.name}`);
+                    // Futura implementación de redirección
+                    if (partner.redirectUrl) {
+                        window.open(partner.redirectUrl, '_blank');
+                    }
+                };
+                
                 basicContainer.appendChild(card);
             });
 

@@ -15,7 +15,8 @@
     "offer": "15% descuento exclusivo del día + postre cortesía",
     "distanceKey": "8 min walk",
     "priceRange": "$$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "https://www.casalucio.es/reservas"
   },
   {
     "id": "cafe-001",
@@ -32,7 +33,8 @@
     "offer": "Café gratis con cualquier desayuno",
     "distanceKey": "10 min walk",
     "priceRange": "$$",
-    "categoryKey": "drink"
+    "categoryKey": "drink",
+    "redirectUrl": "tel:+34911234567"
   },
   {
     "id": "exp-001",
@@ -50,7 +52,8 @@
     "offer": "Cata premium exclusiva para huéspedes + copa de bienvenida",
     "distanceKey": "5 min walk",
     "priceRange": "$$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "https://www.mercadodesanmiguel.es/visitas-guiadas"
   },
   {
     "id": "rest-002",
@@ -67,7 +70,8 @@
     "offer": "Cocido con descuento para grupos",
     "distanceKey": "7 min walk",
     "priceRange": "$$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "https://www.labola.es/reservas"
   },
   {
     "id": "shop-001",
@@ -84,7 +88,8 @@
     "offer": "10% descuento en alpargatas",
     "distanceKey": "9 min walk",
     "priceRange": "$$",
-    "categoryKey": "shop"
+    "categoryKey": "shop",
+    "redirectUrl": "https://www.antiguacasacrespo.com/contacto"
   },
   {
     "id": "rest-003",
@@ -101,7 +106,8 @@
     "offer": "Menú del día con descuento",
     "distanceKey": "4 min walk",
     "priceRange": "$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "tel:+34918765432"
   },
   {
     "id": "cafe-002",
@@ -118,7 +124,8 @@
     "offer": "Desayuno especial con descuento",
     "distanceKey": "9 min walk",
     "priceRange": "$$$",
-    "categoryKey": "drink"
+    "categoryKey": "drink",
+    "redirectUrl": "https://www.cafedeoriente.es/reservas"
   },
   {
     "id": "cafe-003",
@@ -135,7 +142,8 @@
     "offer": "Churros con descuento para huéspedes",
     "distanceKey": "5 min walk",
     "priceRange": "$",
-    "categoryKey": "drink"
+    "categoryKey": "drink",
+    "redirectUrl": "tel:+34913654789"
   },
   {
     "id": "exp-002",
@@ -153,7 +161,8 @@
     "offer": "Tour guiado exclusivo con descuento para huéspedes",
     "distanceKey": "6 min walk",
     "priceRange": "$$",
-    "categoryKey": "experience"
+    "categoryKey": "experience",
+    "redirectUrl": "https://www.esmadrid.com/es/que-hacer/plaza-mayor"
   },
   {
     "id": "exp-003",
@@ -171,7 +180,8 @@
     "offer": "Visita nocturna exclusiva al atardecer para huéspedes",
     "distanceKey": "15 min walk",
     "priceRange": "Gratis",
-    "categoryKey": "experience"
+    "categoryKey": "experience",
+    "redirectUrl": "https://www.esmadrid.com/es/que-hacer/monumentos/templo-de-debod"
   },
   {
     "id": "shop-002",
@@ -188,7 +198,8 @@
     "offer": "10% descuento en abanicos",
     "distanceKey": "7 min walk",
     "priceRange": "$$",
-    "categoryKey": "shop"
+    "categoryKey": "shop",
+    "redirectUrl": "https://casadediego.com/contacto"
   },
   {
     "id": "rest-004",
@@ -205,7 +216,8 @@
     "offer": "Menú del día con descuento",
     "distanceKey": "4 min walk",
     "priceRange": "$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "tel:+34919876543"
   },
   {
     "id": "cafe-004",
@@ -222,7 +234,8 @@
     "offer": "Desayuno con descuento",
     "distanceKey": "10 min walk",
     "priceRange": "$$",
-    "categoryKey": "drink"
+    "categoryKey": "drink",
+    "redirectUrl": "https://www.cafecomercial.es/reservas"
   },
   {
     "id": "exp-004",
@@ -239,7 +252,8 @@
     "offer": "Recomendación destacada",
     "distanceKey": "0 min walk",
     "priceRange": "Gratis",
-    "categoryKey": "experience"
+    "categoryKey": "experience",
+    "redirectUrl": "https://www.esmadrid.com/es/que-hacer/puerta-del-sol"
   },
   {
     "id": "rest-005",
@@ -256,6 +270,7 @@
     "offer": "Reserva prioritaria para huéspedes",
     "distanceKey": "6 min walk",
     "priceRange": "$$$$",
-    "categoryKey": "eat"
+    "categoryKey": "eat",
+    "redirectUrl": "https://www.botin.es/reservas"
   }
 ]
