@@ -1,4 +1,4 @@
-// js/recommendations.js - Versión MEJORADA: Detección de zonas robusta + Premium en destacado + Básicos visibles
+// js/recommendations.js - Versión CON PARTNER-TOP: Rotación diaria + Fijo + Carrusel
 
 let currentFilter = 'all'; // Filtro activo por defecto
 
@@ -10,6 +10,21 @@ const defaultCategories = [
     { icon: "shopping_bag", key: "shop" },
     { icon: "directions_bus", key: "transit" }
 ];
+
+// Función para obtener el partner-top del día (rotación diaria)
+function getPartnerOfDay(partners) {
+    if (!partners || partners.length === 0) return null;
+    
+    if (partners.length === 1) return partners[0];
+    
+    // Usar la fecha actual para determinar qué partner mostrar
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    const partnerIndex = dayOfYear % partners.length;
+    
+    console.log(`Partner-top del día: ${partners[partnerIndex].name} (índice ${partnerIndex} basado en día ${dayOfYear})`);
+    return partners[partnerIndex];
+}
 
 // Función mejorada para detectar la zona del apartamento
 async function getApartmentZone(apartment) {
@@ -162,61 +177,65 @@ async function renderFilteredContent() {
         if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
         const allPartners = await partnersRes.json();
 
-        // PREMIUM: global → siempre mostrar (solo filtrar por categoría)
-        const premiumPartners = allPartners.filter(p => p.global === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+        // PARTNER-TOP: partners con isTop: true (rotación diaria)
+        const topPartners = allPartners.filter(p => p.isTop === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+        const partnerOfDay = getPartnerOfDay(topPartners);
+
+        // PREMIUM: global → siempre mostrar (excluyendo los que ya son top)
+        const premiumPartners = allPartners.filter(p => p.global === true && !p.isTop && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
 
         // BÁSICO: mostrar todos si no hay zona detectada, o solo los de la zona si hay
         const basicPartners = zone 
-            ? allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter))
-            : allPartners.filter(p => !p.global && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+            ? allPartners.filter(p => !p.global && !p.isTop && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter))
+            : allPartners.filter(p => !p.global && !p.isTop && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
 
-        // Mostrar PREMIUM en sección destacada existente
-        if (premiumPartners.length > 0) {
+        // Mostrar PARTNER-TOP en sección destacada existente
+        if (partnerOfDay) {
             hasContent = true;
             const featuredItem = document.getElementById('featured-item');
             if (featuredItem) {
-                // Mostrar solo el primer partner premium en la sección destacada
-                const partner = premiumPartners[0];
                 featuredItem.innerHTML = `
-                    <div class="h-48 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/600x300?text=Sin+imagen"}')"></div>
+                    <div class="h-48 bg-cover bg-center" style="background-image: url('${partnerOfDay.image || "https://via.placeholder.com/600x300?text=Sin+imagen"}')"></div>
                     <div class="p-5">
-                        <span class="inline-block bg-primary text-white text-xs font-bold px-2 py-1 rounded mb-2">Premium</span>
-                        <h4 class="text-xl font-bold mb-2">${partner.name}</h4>
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partner.description || ''}</p>
-                        <p class="text-primary font-medium">${partner.offer || 'Oferta disponible'}</p>
-                        <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">${partner.distanceKey || ''}</p>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="inline-block bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">Partner del Día</span>
+                            ${topPartners.length > 1 ? `<span class="text-xs text-gray-500">Rotación diaria (${topPartners.length} partners)</span>` : ''}
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">${partnerOfDay.name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${partnerOfDay.description || ''}</p>
+                        <p class="text-primary font-medium">${partnerOfDay.offer || 'Oferta exclusiva'}</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-500 mt-2">${partnerOfDay.distanceKey || ''}</p>
                     </div>
                 `;
-                
-                // Si hay más partners premium, mostrar carrusel debajo
-                if (premiumPartners.length > 1) {
-                    const premiumSection = document.createElement('div');
-                    premiumSection.className = 'pt-6';
-                    premiumSection.innerHTML = `<h3 class="text-lg font-bold mb-4">Más recomendaciones destacadas</h3>`;
-                    
-                    const premiumContainer = document.createElement('div');
-                    premiumContainer.className = 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4';
-                    
-                    // Mostrar el resto de partners premium (empezando desde el segundo)
-                    for (let i = 1; i < premiumPartners.length; i++) {
-                        const partner = premiumPartners[i];
-                        const card = document.createElement('div');
-                        card.className = 'snap-start w-64 shrink-0 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30';
-                        card.innerHTML = `
-                            <div class="h-32 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/300x150?text=Sin+imagen"}')"></div>
-                            <div class="p-4">
-                                <span class="inline-block bg-primary text-white text-xs font-bold px-2 py-1 rounded mb-2">Premium</span>
-                                <h4 class="text-base font-semibold mb-1">${partner.name}</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${partner.description || ''}</p>
-                                <p class="text-primary font-medium mt-2">${partner.offer || 'Oferta disponible'}</p>
-                            </div>`;
-                        premiumContainer.appendChild(card);
-                    }
-                    
-                    premiumSection.appendChild(premiumContainer);
-                    sectionsContainer.appendChild(premiumSection);
-                }
             }
+        }
+
+        // Mostrar PREMIUM en carrusel
+        if (premiumPartners.length > 0) {
+            hasContent = true;
+            const premiumSection = document.createElement('div');
+            premiumSection.className = 'pt-6';
+            premiumSection.innerHTML = `<h3 class="text-lg font-bold mb-4">Más recomendaciones premium</h3>`;
+            
+            const premiumContainer = document.createElement('div');
+            premiumContainer.className = 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4';
+            
+            premiumPartners.forEach(partner => {
+                const card = document.createElement('div');
+                card.className = 'snap-start w-64 shrink-0 flex flex-col bg-white dark:bg-gray-800 rounded-2xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border-2 border-primary/30';
+                card.innerHTML = `
+                    <div class="h-32 bg-cover bg-center" style="background-image: url('${partner.image || "https://via.placeholder.com/300x150?text=Sin+imagen"}')"></div>
+                    <div class="p-4">
+                        <span class="inline-block bg-primary text-white text-xs font-bold px-2 py-1 rounded mb-2">Premium</span>
+                        <h4 class="text-base font-semibold mb-1">${partner.name}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">${partner.description || ''}</p>
+                        <p class="text-primary font-medium mt-2">${partner.offer || 'Oferta disponible'}</p>
+                    </div>`;
+                premiumContainer.appendChild(card);
+            });
+            
+            premiumSection.appendChild(premiumContainer);
+            sectionsContainer.appendChild(premiumSection);
         }
 
         // Mostrar básicos en sección locales (debajo)
