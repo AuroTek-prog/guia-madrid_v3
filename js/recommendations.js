@@ -1,76 +1,4 @@
-// js/recommendations.js - Versión FINAL: Premium en destacado + Básicos en locales + Filtro azul correcto
-
-let currentFilter = 'all'; // Filtro activo por defecto
-
-// Categorías por defecto (siempre visibles)
-const defaultCategories = [
-    { icon: "grid_view", key: "all" },
-    { icon: "restaurant", key: "eat" },
-    { icon: "local_cafe", key: "drink" },
-    { icon: "shopping_bag", key: "shop" },
-    { icon: "directions_bus", key: "transit" },
-    { icon: "photo_camera", key: "experience" }
-];
-
-async function renderPage() {
-    const apt = window.appState.apartmentData?.[window.appState.apartmentId];
-    if (!apt) {
-        console.error('No hay datos de apartamento');
-        showFallbackMessage('No se pudo cargar los datos del apartamento.');
-        return;
-    }
-
-    const recs = apt.recommendations || {};
-
-    document.title = t('navigation.recommendations_title');
-    safeText('page-title', t('navigation.recommendations_title'));
-    safeText('headline', t('recommendations.title'));
-    safeText('subtitle', t('recommendations.subtitle') || 'Lugares seleccionados a poca distancia de tu apartamento en Madrid');
-
-    // Renderizar chips de filtro SIEMPRE
-    renderFilterChips(recs.categories || defaultCategories);
-
-    // Renderizar contenido filtrado (estático + premium + básicos)
-    await renderFilteredContent();
-
-    // Configurar navegación inferior
-    setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
-}
-
-// Renderiza chips de filtro (siempre visible y con azul al seleccionar)
-function renderFilterChips(categories) {
-    const container = document.getElementById('filter-chips');
-    if (!container) return;
-    container.innerHTML = '';
-    categories.forEach(cat => {
-        const chip = document.createElement('div');
-        chip.dataset.key = cat.key;
-        chip.className = `snap-start flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-5 border border-transparent cursor-pointer transition-all active:scale-95 ${
-            cat.key === currentFilter 
-                ? 'bg-primary text-white font-semibold shadow-md' 
-                : 'bg-gray-100 dark:bg-gray-800 hover:border-gray-200 dark:hover:border-gray-700 text-gray-900 dark:text-gray-100'
-        }`;
-        chip.innerHTML = `
-            <span class="material-symbols-outlined text-[18px]">${cat.icon}</span>
-            <p class="text-sm leading-normal">${t(`recommendations.filters.${cat.key}`) || cat.key}</p>
-        `;
-        chip.onclick = () => {
-            currentFilter = cat.key;
-            // Limpiar todos los chips
-            document.querySelectorAll('#filter-chips > div').forEach(c => {
-                c.classList.remove('bg-primary', 'text-white', 'font-semibold', 'shadow-md');
-                c.classList.add('bg-gray-100', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-gray-100', 'hover:border-gray-200', 'dark:hover:border-gray-700');
-            });
-            // Poner azul al chip pulsado
-            chip.classList.add('bg-primary', 'text-white', 'font-semibold', 'shadow-md');
-            chip.classList.remove('bg-gray-100', 'dark:bg-gray-800', 'text-gray-900', 'dark:text-gray-100', 'hover:border-gray-200', 'dark:hover:border-gray-700');
-            renderFilteredContent();
-        };
-        container.appendChild(chip);
-    });
-}
-
-// Renderiza contenido filtrado (estático + premium + básicos)
+// Renderiza contenido filtrado
 async function renderFilteredContent() {
     const apt = window.appState.apartmentData?.[window.appState.apartmentId];
     if (!apt) return;
@@ -78,10 +6,10 @@ async function renderFilteredContent() {
     const sectionsContainer = document.getElementById('sections-container');
     if (!sectionsContainer) return;
 
-    sectionsContainer.innerHTML = ''; // Limpiar
+    sectionsContainer.innerHTML = '';
     let hasContent = false;
 
-    // 1. Recomendaciones estáticas filtradas
+    // 1. Recomendaciones estáticas
     if (recs.sections) {
         recs.sections.forEach(section => {
             const filteredItems = section.items.filter(item => currentFilter === 'all' || item.typeKey === currentFilter);
@@ -90,13 +18,12 @@ async function renderFilteredContent() {
 
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'pt-6';
-            let sectionHTML = `<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">${t(`recommendations.${section.titleKey}`)}</h3>`;
+            const sectionHTML = `<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">${t(`recommendations.${section.titleKey}`)}</h3>`;
             const itemsContainer = document.createElement('div');
             itemsContainer.className = section.titleKey === 'essentials_title' ? 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4' : 'flex flex-col gap-4';
 
             filteredItems.forEach(item => {
-                // Tu lógica original de renderizado de items (transport, essentials, etc.)
-                // ... (mantén tu código aquí sin cambios)
+                // ... lógica de renderizado original de cada item
             });
 
             sectionDiv.innerHTML += sectionHTML;
@@ -108,26 +35,31 @@ async function renderFilteredContent() {
     // 2. Partners dinámicos
     try {
         const zone = await getApartmentZone(apt);
-        console.log('Apartamento en zona:', zone?.name || 'No detectada');
-
         const timestamp = new Date().getTime();
         const partnersRes = await fetch(`${window.ROOT_PATH}data/partners.json?t=${timestamp}`, { cache: 'no-store' });
         if (!partnersRes.ok) throw new Error('No se pudo cargar partners.json');
         const allPartners = await partnersRes.json();
 
-        // PREMIUM: global → siempre mostrar (solo filtrar por categoría)
+        // PREMIUM: siempre mostrar (filtrado por categoría)
         const premiumPartners = allPartners.filter(p => p.global === true && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
 
-        // BÁSICO: solo si hay zona y coincide
-        const basicPartners = zone ? allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter)) : [];
+        // BÁSICO: si hay zona filtramos por zona, si no, mostramos todos como fallback
+        let basicPartners = [];
+        let basicTitle = '';
+        if (zone) {
+            basicPartners = allPartners.filter(p => !p.global && p.zones?.includes(zone.id) && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+            basicTitle = `Ofertas locales en ${zone.name}`;
+        } else {
+            basicPartners = allPartners.filter(p => !p.global && p.active !== false && (currentFilter === 'all' || p.categoryKey === currentFilter));
+            basicTitle = 'Recomendados en Madrid';
+        }
 
-        // Mostrar PREMIUM en sección destacada (carrusel)
+        // Mostrar PREMIUM
         if (premiumPartners.length > 0) {
             hasContent = true;
             const premiumSection = document.createElement('div');
             premiumSection.className = 'pt-8';
             premiumSection.innerHTML = `<h3 class="text-xl font-bold mb-6 text-primary">Recomendaciones Premium Destacadas</h3>`;
-
             const premiumContainer = document.createElement('div');
             premiumContainer.className = 'flex gap-4 overflow-x-auto hide-scrollbar snap-x pb-4';
 
@@ -149,13 +81,12 @@ async function renderFilteredContent() {
             sectionsContainer.appendChild(premiumSection);
         }
 
-        // Mostrar básicos en sección locales (debajo)
+        // Mostrar BÁSICOS
         if (basicPartners.length > 0) {
             hasContent = true;
             const basicSection = document.createElement('div');
             basicSection.className = 'pt-8';
-            basicSection.innerHTML = `<h3 class="text-xl font-bold mb-6">Ofertas locales en ${zone?.name || 'tu zona'}</h3>`;
-
+            basicSection.innerHTML = `<h3 class="text-xl font-bold mb-6">${basicTitle}</h3>`;
             const basicContainer = document.createElement('div');
             basicContainer.className = 'grid gap-6 md:grid-cols-2';
 
@@ -175,11 +106,23 @@ async function renderFilteredContent() {
             basicSection.appendChild(basicContainer);
             sectionsContainer.appendChild(basicSection);
         }
+
+        // Si no hay zona y no hay básicos, mostrar mensaje bonito (opcional)
+        if (!zone && basicPartners.length === 0) {
+            const noZoneMsg = document.createElement('div');
+            noZoneMsg.className = 'pt-8 text-center text-gray-500 dark:text-gray-400';
+            noZoneMsg.innerHTML = `
+                <span class="material-symbols-outlined text-5xl mb-4 text-gray-300 dark:text-gray-600">info</span>
+                <p class="text-lg font-medium">No se detectó zona específica</p>
+                <p class="text-sm mt-2">Mostrando ofertas generales en Madrid.</p>`;
+            sectionsContainer.appendChild(noZoneMsg);
+        }
+
     } catch (err) {
         console.error('Error cargando partners o zonas:', err);
     }
 
-    // Fallback visual si no hay NADA
+    // Fallback si no hay contenido
     if (!hasContent) {
         const noContent = document.createElement('div');
         noContent.className = 'pt-8 text-center text-gray-500 dark:text-gray-400';

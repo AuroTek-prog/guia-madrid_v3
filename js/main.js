@@ -183,15 +183,12 @@ async function initializeApp() {
 document.addEventListener('DOMContentLoaded', initializeApp);
 
 // =====================================================
-// Zona del apartamento (Turf.js)
+// Zona del apartamento (Turf.js) con tolerancia mejorada
 // =====================================================
 let __zonesCache = null;
 
-async function getApartmentZone(apartment) {
-    if (!apartment || !apartment.lat || !apartment.lng) {
-        console.warn('getApartmentZone: apartamento inválido');
-        return null;
-    }
+async function getApartmentZone(apartment, tolerance = 0.0005) {
+    if (!apartment?.lat || !apartment?.lng) return null;
 
     const lat = Number(apartment.lat);
     const lng = Number(apartment.lng);
@@ -199,32 +196,34 @@ async function getApartmentZone(apartment) {
 
     try {
         if (!__zonesCache) {
-            const res = await fetch(`${window.ROOT_PATH}data/zones.json`);
-            if (!res.ok) throw new Error('No se pudo cargar zones.json');
-            __zonesCache = await res.json();
+            const zonesRes = await fetch(`${window.ROOT_PATH}data/zones.json`);
+            if (!zonesRes.ok) throw new Error('No se pudo cargar zones.json');
+            __zonesCache = await zonesRes.json();
         }
 
         const point = turf.point([lng, lat]);
 
         for (const zone of __zonesCache) {
-            if (!Array.isArray(zone.polygon) || zone.polygon.length < 3) continue;
+            if (!zone?.polygon?.length || zone.polygon.length < 3) continue;
 
             let coords = zone.polygon.map(p => [Number(p[0]), Number(p[1])]);
             const first = coords[0];
             const last = coords[coords.length - 1];
-            if (first[0] !== last[0] || first[1] !== last[1]) {
-                coords.push(first);
+            if (Math.abs(first[0] - last[0]) > tolerance || Math.abs(first[1] - last[1]) > tolerance) {
+                coords = [...coords, first];
             }
 
             const polygon = turf.polygon([coords]);
             if (turf.booleanPointInPolygon(point, polygon)) {
+                console.log(`Zona detectada: ${zone.name} (id: ${zone.id})`);
                 return zone;
             }
         }
 
+        console.log('No se encontró zona para:', { lat, lng });
         return null;
     } catch (err) {
-        console.error('Error detectando zona:', err);
+        console.error('Error cargando/detectando zona:', err);
         return null;
     }
 }
