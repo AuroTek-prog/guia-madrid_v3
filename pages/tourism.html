@@ -70,7 +70,9 @@
 
         /* Ajuste del botón flotante sobre la barra inferior */
         #map-button-container {
-            bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            /* Posicionado por encima de la barra de navegación */
+            bottom: calc(4rem + 1.5rem + env(safe-area-inset-bottom));
+            z-index: 60; /* Mayor que el z-50 de la barra de navegación */
         }
     </style>
 </head>
@@ -127,7 +129,7 @@
     </main>
     
     <!-- Botón flotante del mapa -->
-    <div id="map-button-container" class="fixed left-1/2 transform -translate-x-1/2 z-40">
+    <div id="map-button-container" class="fixed left-1/2 transform -translate-x-1/2 z-60">
         <button id="map-button"
             class="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform duration-200">
             <span class="material-symbols-outlined" style="font-size: 20px;">map</span>
