@@ -74,6 +74,12 @@
             bottom: calc(4rem + 1.5rem + env(safe-area-inset-bottom));
             z-index: 60; /* Mayor que el z-50 de la barra de navegación */
         }
+
+        /* Ocultar el botón del mapa cuando el modal está abierto */
+        .modal-open #map-button-container {
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 
@@ -129,7 +135,7 @@
     </main>
     
     <!-- Botón flotante del mapa -->
-    <div id="map-button-container" class="fixed left-1/2 transform -translate-x-1/2 z-60">
+    <div id="map-button-container" class="fixed left-1/2 transform -translate-x-1/2 z-60 transition-opacity duration-300">
         <button id="map-button"
             class="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-full shadow-2xl hover:scale-105 transition-transform duration-200">
             <span class="material-symbols-outlined" style="font-size: 20px;">map</span>
@@ -138,7 +144,7 @@
     </div>
     
     <!-- Modal de selección de mapa -->
-    <div id="map-modal" class="modal-backdrop fixed inset-0 z-50 flex items-end justify-center" style="display: none;">
+    <div id="map-modal" class="modal-backdrop fixed inset-0 z-70 flex items-end justify-center" style="display: none;">
         <div class="modal-content bg-white dark:bg-surface-dark w-full max-w-md rounded-t-3xl p-6 pb-8">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-xl font-bold text-gray-900 dark:text-white">Abrir mapa con</h3>
@@ -214,6 +220,31 @@
 
     <script>
         window.ROOT_PATH = '../';
+        
+        // Función para abrir el modal y ocultar el botón del mapa
+        document.getElementById('map-button').addEventListener('click', function() {
+            document.getElementById('map-modal').style.display = 'flex';
+            document.body.classList.add('modal-open');
+            setTimeout(() => {
+                document.getElementById('map-modal').classList.add('show');
+            }, 10);
+        });
+        
+        // Función para cerrar el modal y mostrar el botón del mapa
+        document.getElementById('close-modal').addEventListener('click', closeModal);
+        document.getElementById('map-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        function closeModal() {
+            document.getElementById('map-modal').classList.remove('show');
+            document.body.classList.remove('modal-open');
+            setTimeout(() => {
+                document.getElementById('map-modal').style.display = 'none';
+            }, 300);
+        }
     </script>
     <script src="../js/main.js"></script>
     <script src="../js/tourism.js"></script>
