@@ -96,11 +96,11 @@
       }
     }
   },
-  "granvia-205": {
-    "id": "granvia-205",
-    "slug": "granvia-205",
-    "name": "Piso de Lujo en Gran Vía",
-    "address": "Gran Vía, 60, 2º D",
+  "Ruda-15": {
+    "id": "Ruda-15",
+    "slug": "Ruda 15, Bajo A",
+    "name": "Piso de Lujo en el corazon de Madrid",
+    "address": "Calle Ruda 15, Bajo A Interior",
     "lat": 40.4208,
     "lng": -3.7059,
     "zone": "granvia",
@@ -108,18 +108,18 @@
       "portada": "assets/images/apartments/granvia-205/portada.jpg"
     },
     "host": {
-      "name": "Carlos & Sofia",
-      "phone": "+34 600 111 111"
+      "name": "Batuecas",
+      "phone": "+34 638 90 89 49"
     },
     "wifi": {
-      "type": "keypad",
-      "code": "1234ABCD",
+     // "type": "keypad",
+     // "code": "1234ABCD",
       "instructions": [
-        "Pasa la tarjeta por el lector junto a la puerta.",
+        "Al abrir esta guia te encontraras con varias pestañas, selecciona Información esencial y tendras dos botones para acceder al apartamento",
         "La luz se pondrá verde y la cerradura se desbloqueará."
       ]
     },
-    "access": { "type": "keypad", "code": "1234ABCD" },
+    "access": { "type": "Inteligente", "code": "sin codigos" },
     "devices": {
       "heating": { "type": "central", "detailsKey": "heating_central" }
     },
@@ -127,14 +127,14 @@
       { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" },
       { "icon": "bedtime", "titleKey": "rules_quiet_hours", "subtitleKey": "rules_quiet_hours_time", "color": "indigo" }
     ],
-    "raixerDevices": { "deviceId": "3e0036000a47363433353735" },
+    "raixerDevices": { "deviceId": "0a10aced202194944a02fe1c" },
     "emergency": {
-      "apartmentId": "B5",
+      "apartmentId": "Bajo A Interior",
       "host": {
-        "name": "Carlos & Sofia",
+        "name": "Batuecas Rea Estate",
         "role": "Property Manager",
-        "phone": "+34 600 111 111",
-        "whatsapp": "+34 600 111 111",
+        "phone": "+34 638 90 89 49",
+        "whatsapp": "+34 638 90 89 49",
         "photo": "https://lh3.googleusercontent.com/aida-public/AB6AXuAUOrgNX3RswPRXZIgUVqUgAstK1P8jkcSoCAFnNZBc-gbZlUh6fExRo-_oWcyrCjjyd05eWoQM8IsumNKv3wVkRiTOD6AhhOwdsLPIjF9vyPt85sWPYiTgYU3FfBwL2gEfUnZ8ZLlTVZ4vJNYRSATwbF13TX2uEDgpv44uidagLZX3GXKU6tq8_vegMvR0yCeOogmR-C8r6HLCDCzqKg1iD0uF3CBlWJK7tQbENDQ2nlX4mYpBTgFRU84yyaH4YcwIEJjj-OpNfA",
         "online": true,
         "availability": { "general": "09:00 - 22:00", "emergency": "24/7" }
