@@ -98,8 +98,8 @@
     ]
   },
   {
-    "id": "latina",
-    "name": "Latina",
+    "id": "La-latina",
+    "name": "La-Latina",
     "barrios": ["Los Cármenes", "Puerta del Ángel", "Aluche", "Campamento"],
     "polygon": [
       [-3.777, 40.417],
