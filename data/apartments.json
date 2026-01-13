@@ -105,15 +105,15 @@
     "lng": -3.7059,
     "zone": "granvia",
     "images": {
-      "portada": "assets/images/apartments/granvia-205/portada.jpg"
+      "portada": "assets/images/apartments/Ruda-15/portada.jpg"
     },
     "host": {
       "name": "Batuecas",
       "phone": "+34 638 90 89 49"
     },
     "wifi": {
-     // "type": "keypad",
-     // "code": "1234ABCD",
+     "type": "DIGIFIBRA-DRTE",
+     "code": "P5tSeK2PXZPz",
       "instructions": [
         "Al abrir esta guia te encontraras con varias pestañas, selecciona Información esencial y tendras dos botones para acceder al apartamento",
         "La luz se pondrá verde y la cerradura se desbloqueará."
