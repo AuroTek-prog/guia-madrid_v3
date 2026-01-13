@@ -34,46 +34,6 @@
       "washing_machine": { "type": "front_load", "detailsKey": "washing_machine_quick_wash" },
       "coffee_maker": { "type": "nespresso", "detailsKey": "coffee_maker_refill" }
     },
-    "recommendations": {
-      "featured": {
-        "name": "La Bodega de los Secretos",
-        "typeKey": "restaurant",
-        "descriptionKey": "bodega_secretos_desc",
-        "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuAMRr_ODQKE7jaT0U7vadp78RK6bAMRaOsEqDcyLG9G4bOBuhgtKAjo7_LGn3O-VMmXRTmLHB-yKnXvLNAf2smR0wQm4untOLHFnMS39dIw_Riq0qMZj-NOazMMC6FA78gZ5NoRhXVgMWiOeqS4HtG5bxDm4N3v1iBO3_yCgDvhel0e4CuCPAJLEZP1RnEpDNeFl3iNHHJuSyDBJ5jSx6Syvw_AapfATQlUDANde8xrO4y2a-7TAUdi_CuMXeu-FBLecUwO3q0MrQ",
-        "distance": "7 min",
-        "priceRange": "$$"
-      },
-      "categories": [
-        { "icon": "grid_view", "key": "all" },
-        { "icon": "restaurant", "key": "eat" },
-        { "icon": "local_cafe", "key": "drink" },
-        { "icon": "shopping_bag", "key": "shop" },
-        { "icon": "directions_bus", "key": "transit" }
-      ],
-      "sections": [
-        {
-          "titleKey": "eats_title",
-          "items": [
-            {
-              "name": "Mercado de San Miguel",
-              "typeKey": "food_market",
-              "descriptionKey": "mercado_san_miguel_desc",
-              "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuDpd0g-Dsv_AZ0c1waqrdzXUiKAB9vDUt_LJT9hNGCrAphok_e0SanYi0g575H8nBEEpCTXHNqsTEGmRZ7DK59cHWWYBPRfg0RsZVjUyjDeisVxrDmZw7uATMwBxU7xsb6X0QdpT4O9JFWk6OMSVYNmgttyTIjZl5vmHC_ONGXD7gOqrR5sYi13NfSgdqMQzLrOos06ESuFyMHjqb3uXHthFdqZjpXSv9pK8Q_Y7jGf4_p3ePr-c2Au80S-3cOQmvrJSj-qTZWGAw",
-              "distance": "12 min walk",
-              "priceRange": "$$$"
-            },
-            {
-              "name": "HanSo Café",
-              "typeKey": "coffee_shop",
-              "descriptionKey": "hanso_cafe_desc",
-              "image": "https://lh3.googleusercontent.com/aida-public/AB6AXuBZDNtkFUcXf_aoI1jxtNWsueLOU0lUrjdCJkYVEPVSsviWvSGhou6ipHPD4pLTnNfa-ZoR8LS_Y9N06ex9dVvqlgJYciblmPM5yTei4m3HcMWbxWuUGkEyWtre8IV0H-KseUoGnNSW4e27NSSS_-8wE2952-07G2R754RbqJmtnG24j_6g4YhUPEM7RuGRnkTOwOJaJ-9XXPtVKXPlRawK8_rwbFY9ZOEqA_P-XBFF0XBdYuBanOFKeK6ZjPGFIVICH7-au4scfQ",
-              "distance": "5 min walk",
-              "priceRange": "$$"
-            }
-          ]
-        }
-      ]
-    },
     "houseRules": [
       { "icon": "smoke_free", "titleKey": "rules_no_smoking", "color": "red" },
       { "icon": "bedtime", "titleKey": "rules_quiet_hours", "subtitleKey": "rules_quiet_hours_time", "color": "indigo" },
@@ -103,7 +63,7 @@
     "address": "Calle Ruda 15, Bajo A Interior",
     "lat": 40.4208,
     "lng": -3.7059,
-    "zone": "granvia",
+    "zone": "La-latina",
     "images": {
       "portada": "assets/images/apartments/ruda-15/portada.jpg"
     },
