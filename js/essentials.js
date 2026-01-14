@@ -4,6 +4,8 @@
    - Botones y LEDs solo para puertas existentes
    - Fallbacks completos y logs detallados
    - Animación LED de éxito integrada
+   - Sección de acceso reubicada entre botones y WiFi
+   - Traducción de instrucciones con glosario
 ===================================================== */
 
 // CONFIG RAIXER
@@ -117,6 +119,25 @@ function t(key) {
     return value;
 }
 
+// Función para copiar texto al portapapeles con animación de éxito
+function copyToClipboardWithAnimation(text, successElementId) {
+    navigator.clipboard.writeText(text).then(() => {
+        showNotification(t('common.copied') || 'Copiado');
+        
+        // Mostrar animación de éxito
+        const successElement = document.getElementById(successElementId);
+        if (successElement) {
+            successElement.classList.add('show');
+            setTimeout(() => {
+                successElement.classList.remove('show');
+            }, 2000);
+        }
+    }).catch(err => {
+        console.error('Error al copiar:', err);
+        showNotification('Error al copiar');
+    });
+}
+
 /* =====================================================
    INICIALIZACIÓN PRINCIPAL
 ===================================================== */
@@ -146,38 +167,14 @@ async function initializeEssentials() {
         safeText('apartment-name', apt.name || 'Apartamento sin nombre');
         safeText('apartment-address', apt.address || 'Dirección no disponible');
 
-        // WiFi
-        safeText('wifi-title', t('essentials.wifi_title'));
-        safeText('wifi-network', apt.wifi?.network || 'No disponible');
-        safeText('wifi-password', apt.wifi?.password || 'No disponible');
-        const copyBtn = safeGet('wifi-copy-btn');
-        if (apt.wifi?.password && copyBtn) {
-            copyBtn.onclick = () => {
-                navigator.clipboard.writeText(apt.wifi.password);
-                showNotification(t('common.copied'));
-            };
-        } else if (copyBtn) {
-            copyBtn.style.display = 'none';
-        }
+        // Configurar sección de acceso (reubicada antes de WiFi)
+        setupAccessSection(apt);
 
-        // Access Instructions
-        safeText('access-title', t('essentials.access_title'));
-        safeText('access-code', apt.access?.code || '---');
-        const stepsList = safeGet('access-steps-list');
-        if (stepsList) {
-            stepsList.innerHTML = '';
-            if (Array.isArray(apt.access?.instructions)) {
-                apt.access.instructions.forEach((step, i) => {
-                    const li = document.createElement('li');
-                    li.className = 'flex gap-2 items-start';
-                    li.innerHTML = `<span class="flex items-center justify-center size-6 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-bold mt-0.5">${i+1}</span>
-                                    <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">${step}</p>`;
-                    stepsList.appendChild(li);
-                });
-            } else {
-                stepsList.innerHTML = '<p class="text-sm text-gray-500">Instrucciones no disponibles</p>';
-            }
-        }
+        // Configurar sección WiFi (mejorada)
+        setupWiFiSection(apt);
+
+        // Configurar reglas de la casa
+        setupHouseRules(apt);
 
         // RAIXER
         const portalBtn = safeGet('btn-portal-access');
@@ -272,6 +269,181 @@ async function initializeEssentials() {
     } catch (err) {
         console.error('Error inicializando essentials:', err);
         showNotification('Error cargando información del apartamento');
+    }
+}
+
+// Función para configurar la sección de acceso con traducción por glosario
+function setupAccessSection(apartment) {
+    const accessData = apartment.access;
+    
+    if (!accessData) {
+        const accessSection = safeGet('access-section');
+        if (accessSection) accessSection.style.display = 'none';
+        return;
+    }
+    
+    // Título de la sección
+    safeText('access-title', t('essentials.access_title') || 'Instrucciones de Acceso');
+    
+    // Tipo de acceso
+    const accessTypeElement = safeGet('access-type');
+    const accessTypeIconElement = safeGet('access-type-icon');
+    
+    // Mapeo de tipos de acceso a textos e iconos
+    const accessTypes = {
+        'keybox': { text: t('essentials.access_keybox') || 'Caja de llaves', icon: 'key' },
+        'keypad': { text: t('essentials.access_keypad') || 'Teclado numérico', icon: 'dialpad' },
+        'smart': { text: t('essentials.access_smart') || 'Acceso inteligente', icon: 'lock' },
+        'inteligente': { text: t('essentials.access_smart') || 'Acceso inteligente', icon: 'lock' },
+        'default': { text: t('essentials.access_default') || 'Acceso estándar', icon: 'vpn_key' }
+    };
+    
+    const accessType = accessTypes[accessData.type] || accessTypes['default'];
+    if (accessTypeElement) accessTypeElement.textContent = accessType.text;
+    if (accessTypeIconElement) accessTypeIconElement.textContent = accessType.icon;
+    
+    // Código de acceso
+    const accessCodeElement = safeGet('access-code');
+    if (accessCodeElement) accessCodeElement.textContent = accessData.code || '---';
+    
+    // Configurar botón de copiar código
+    const copyAccessCodeBtn = safeGet('access-code-copy-btn');
+    if (copyAccessCodeBtn && accessData.code) {
+        copyAccessCodeBtn.onclick = () => {
+            copyToClipboardWithAnimation(accessData.code, 'access-copy-success');
+        };
+    } else if (copyAccessCodeBtn) {
+        copyAccessCodeBtn.style.display = 'none';
+    }
+    
+    // Instrucciones de acceso con traducción por glosario
+    const accessStepsList = safeGet('access-steps-list');
+    if (accessStepsList) {
+        accessStepsList.innerHTML = '';
+        
+        // Obtener el idioma actual
+        const currentLang = window.appState.lang || 'es';
+        
+        if (Array.isArray(accessData.instructions)) {
+            accessData.instructions.forEach((step, i) => {
+                const li = document.createElement('li');
+                li.className = 'flex gap-2 items-start';
+                
+                // Traducir el paso usando el glosario
+                const translatedStep = translateWithGlossary(step, currentLang);
+                
+                li.innerHTML = `<span class="flex items-center justify-center size-6 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-bold mt-0.5">${i+1}</span>
+                                <p class="text-sm text-text-muted-light dark:text-text-muted-dark leading-relaxed">${translatedStep}</p>`;
+                accessStepsList.appendChild(li);
+            });
+            
+            // Añadir una nota si el idioma no es español (opcional)
+            if (currentLang !== 'es') {
+                const noteLi = document.createElement('li');
+                noteLi.className = 'mt-4 pt-3 border-t border-gray-200 dark:border-gray-700';
+                noteLi.innerHTML = `<p class="text-xs text-gray-500 italic">${t('essentials.instructions_note') || 'Nota: Las instrucciones específicas han sido parcialmente traducidas automáticamente.'}</p>`;
+                accessStepsList.appendChild(noteLi);
+            }
+        } else {
+            accessStepsList.innerHTML = '<p class="text-sm text-gray-500">' + (t('essentials.no_instructions') || 'Instrucciones no disponibles') + '</p>';
+        }
+    }
+}
+
+// Función para configurar la sección WiFi (mejorada)
+function setupWiFiSection(apartment) {
+    const wifiData = apartment.wifi;
+    
+    if (!wifiData) {
+        const wifiSection = safeGet('wifi-section');
+        if (wifiSection) wifiSection.style.display = 'none';
+        return;
+    }
+    
+    // Título de la sección
+    safeText('wifi-title', t('essentials.wifi_title') || 'WiFi');
+    
+    // Nombre de la red
+    const wifiNetworkElement = safeGet('wifi-network');
+    if (wifiNetworkElement) {
+        const networkName = wifiData.network || wifiData.type || 'No disponible';
+        wifiNetworkElement.textContent = networkName;
+        
+        // Aplicar estilo especial al texto de la contraseña
+        if (wifiData.password) {
+            wifiNetworkElement.classList.add('font-mono', 'font-bold');
+        }
+    }
+    
+    // Contraseña
+    const wifiPasswordElement = safeGet('wifi-password');
+    if (wifiPasswordElement) {
+        const password = wifiData.password || wifiData.code || 'No disponible';
+        wifiPasswordElement.textContent = password;
+        
+        // Aplicar estilo especial al texto de la contraseña
+        if (password !== 'No disponible') {
+            wifiPasswordElement.classList.add('password-text');
+        }
+    }
+    
+    // Etiquetas
+    safeText('wifi-network-label', t('essentials.wifi_network') || 'Red');
+    safeText('wifi-password-label', t('essentials.wifi_password') || 'Contraseña');
+    
+    // Configurar botón de copiar contraseña
+    const copyWifiBtn = safeGet('wifi-copy-btn');
+    if (copyWifiBtn && (wifiData.password || wifiData.code)) {
+        const password = wifiData.password || wifiData.code || '';
+        copyWifiBtn.onclick = () => {
+            copyToClipboardWithAnimation(password, 'wifi-copy-success');
+        };
+    } else if (copyWifiBtn) {
+        copyWifiBtn.style.display = 'none';
+    }
+}
+
+// Función para configurar las reglas de la casa
+function setupHouseRules(apartment) {
+    const houseRules = apartment.houseRules;
+    
+    if (!houseRules || !Array.isArray(houseRules)) {
+        const houseRulesSection = safeGet('house-rules-section');
+        if (houseRulesSection) houseRulesSection.style.display = 'none';
+        return;
+    }
+    
+    // Título de la sección
+    safeText('house-rules-title', t('essentials.house_rules') || 'Normas de la Casa');
+    
+    const houseRulesGrid = safeGet('house-rules-grid');
+    if (houseRulesGrid) {
+        houseRulesGrid.innerHTML = '';
+        
+        houseRules.forEach(rule => {
+            const ruleCard = document.createElement('div');
+            ruleCard.className = `flex flex-col items-center gap-2 p-3 rounded-lg bg-surface-light dark:bg-surface-dark border border-gray-100 dark:border-gray-800`;
+            
+            const icon = document.createElement('span');
+            icon.className = `material-symbols-outlined text-${rule.color || 'primary'}`;
+            icon.textContent = rule.icon;
+            
+            const title = document.createElement('span');
+            title.className = 'text-sm font-semibold text-center';
+            title.textContent = t(rule.titleKey) || rule.titleKey;
+            
+            ruleCard.appendChild(icon);
+            ruleCard.appendChild(title);
+            
+            if (rule.subtitleKey) {
+                const subtitle = document.createElement('span');
+                subtitle.className = 'text-xs text-text-muted-light dark:text-text-muted-dark text-center';
+                subtitle.textContent = t(rule.subtitleKey) || rule.subtitleKey;
+                ruleCard.appendChild(subtitle);
+            }
+            
+            houseRulesGrid.appendChild(ruleCard);
+        });
     }
 }
 

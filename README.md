@@ -53,6 +53,21 @@ guia-madrid_v3/
 │   └── images/
 │       ├── apartments/         # Fotos por apartamento (portada, acceso, host)
 │       └── partners/           # Fotos de locales comerciales
+│        ├── rest-001.jpg
+│        ├── cafe-001.jpg
+│        ├── exp-001.jpg
+│        ├── rest-002.jpg
+│        ├── shop-001.jpg
+│        ├── rest-003.jpg
+│        ├── cafe-002.jpg
+│        ├── cafe-003.jpg
+│        ├── exp-002.jpg
+│        ├── exp-003.jpg
+│        ├── shop-002.jpg
+│        ├── rest-004.jpg
+│        ├── cafe-004.jpg
+│        ├── exp-004.jpg
+│        └── rest-005.jpg
 │
 └── css/
     └── styles.css              # Estilos personalizados (si hay)

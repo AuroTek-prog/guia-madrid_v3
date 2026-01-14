@@ -19,6 +19,47 @@ window.t = function(key) {
 };
 
 // ==============================
+// Traducción con glosario de palabras clave
+// ==============================
+/**
+ * Traduce un texto usando un glosario de palabras clave.
+ * @param {string} text - El texto original en español.
+ * @param {string} lang - El código del idioma de destino ('en', 'de', etc.).
+ * @returns {string} - El texto con las palabras clave traducidas.
+ */
+window.translateWithGlossary = function(text, lang) {
+    // Si el idioma es español o no hay traducciones, devolver el texto original
+    if (lang === 'es' || !window.appState?.translations?.glossary) {
+        return text;
+    }
+
+    const glossary = window.appState.translations.glossary;
+    let translatedText = text;
+
+    // Ordenar las claves por longitud (descendente) para traducir frases primero
+    const sortedKeys = Object.keys(glossary).sort((a, b) => b.length - a.length);
+
+    sortedKeys.forEach(spanishTerm => {
+        const translation = glossary[spanishTerm];
+        if (translation) {
+            // Usamos una expresión regular con 'g' (global) y 'i' (insensible a mayúsculas/minúsculas)
+            // y '\b' (boundary) para no traducir partes de palabras (ej. "casa" en "caseta")
+            const regex = new RegExp(`\\b${spanishTerm}\\b`, 'gi');
+            translatedText = translatedText.replace(regex, (match) => {
+                // Intentamos conservar la capitalización original
+                if (match[0] === match[0].toUpperCase()) {
+                    // Si la palabra original empieza con mayúscula, la traducción también
+                    return translation.charAt(0).toUpperCase() + translation.slice(1);
+                }
+                return translation;
+            });
+        }
+    });
+
+    return translatedText;
+};
+
+// ==============================
 // Helper global para texto seguro
 // ==============================
 window.safeText = function(id, value) {

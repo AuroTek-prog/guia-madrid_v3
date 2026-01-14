@@ -63,6 +63,39 @@
         .animate-pulse-fast {
             animation: pulse-fast 1.2s infinite ease-in-out;
         }
+        
+        /* Estilo para la contraseña del WiFi */
+        .password-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .password-text {
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #1152d4 0%, #4a7fff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: bold;
+        }
+        
+        .copy-success {
+            position: absolute;
+            top: -30px;
+            right: 0;
+            background-color: #10b981;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .copy-success.show {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -131,45 +164,78 @@
 
             </div>
 
-            <!-- WiFi Section -->
+            <!-- Access Instructions (MOVIDO ARRIBA) -->
             <section class="mb-6">
-                <h3 id="wifi-title" class="text-lg font-bold">Cargando...</h3>
+                <h3 id="access-title" class="text-lg font-bold mb-3">Cargando...</h3>
                 <div
                     class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                    <div class="flex justify-between items-center mb-3">
-                        <span id="wifi-network-label"
-                            class="text-xs font-semibold text-text-muted-light dark:text-text-muted-dark">Red</span>
-                        <span id="wifi-network" class="font-bold">Cargando...</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span id="wifi-password" class="font-mono font-bold text-primary">Cargando...</span>
-                        <button id="wifi-copy-btn"
-                            class="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95">
-                            <span class="material-symbols-outlined">content_copy</span>
-                        </button>
+                    <div class="flex flex-col gap-3">
+                        <div id="access-type-container" class="flex items-center gap-2">
+                            <span id="access-type-icon" class="material-symbols-outlined text-primary">vpn_key</span>
+                            <span id="access-type" class="font-semibold">Cargando...</span>
+                        </div>
+                        
+                        <div id="access-code-container" class="bg-surface-light dark:bg-surface-dark p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <span id="access-code-label"
+                                        class="text-xs text-text-muted-light dark:text-text-muted-dark block">Código</span>
+                                    <span id="access-code" class="text-xl font-bold">Cargando...</span>
+                                </div>
+                                <button id="access-code-copy-btn"
+                                    class="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-2">
+                            <h4 id="access-instructions-title" class="font-semibold mb-2">Instrucciones</h4>
+                            <ul id="access-steps-list" class="space-y-2"></ul>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Access Instructions -->
+            <!-- WiFi Section (MEJORADA) -->
             <section class="mb-6">
-                <h3 id="access-title" class="text-lg font-bold">Cargando...</h3>
+                <h3 id="wifi-title" class="text-lg font-bold mb-3">Cargando...</h3>
                 <div
                     class="bg-card-light dark:bg-card-dark p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
-                    <div class="flex flex-col gap-2">
-                        <div id="access-code-container">
-                            <span id="access-code-label"
-                                class="text-xs text-text-muted-light dark:text-text-muted-dark">Código</span>
-                            <span id="access-code" class="text-xl font-bold">Cargando...</span>
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">wifi</span>
+                            <span id="wifi-network-label"
+                                class="text-xs font-semibold text-text-muted-light dark:text-text-muted-dark">Red</span>
                         </div>
-                        <ul id="access-steps-list" class="space-y-2"></ul>
+                        <div class="bg-surface-light dark:bg-surface-dark p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span id="wifi-network" class="font-bold">Cargando...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <span class="material-symbols-outlined text-primary">password</span>
+                            <span id="wifi-password-label"
+                                class="text-xs font-semibold text-text-muted-light dark:text-text-muted-dark">Contraseña</span>
+                        </div>
+                        <div class="password-container bg-surface-light dark:bg-surface-dark p-3 rounded-lg">
+                            <div class="flex justify-between items-center">
+                                <span id="wifi-password" class="password-text">Cargando...</span>
+                                <button id="wifi-copy-btn"
+                                    class="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary transition-colors active:scale-95">
+                                    <span class="material-symbols-outlined">content_copy</span>
+                                </button>
+                                <div id="wifi-copy-success" class="copy-success">¡Copiado!</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
 
             <!-- House Rules -->
             <section class="mb-6">
-                <h3 id="house-rules-title" class="text-lg font-bold">Cargando...</h3>
+                <h3 id="house-rules-title" class="text-lg font-bold mb-3">Cargando...</h3>
                 <div id="house-rules-grid" class="grid grid-cols-2 gap-3"></div>
             </section>
 
@@ -182,6 +248,11 @@
                 <a id="nav-home" href="#"
                     class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
                     <span class="material-symbols-outlined">home</span>
+                    <span class="text-[10px]">Cargando...</span>
+                </a>
+                <a id="nav-essentials" href="#"
+                    class="flex flex-col items-center gap-1 opacity-50 hover:opacity-100 transition-opacity">
+                    <span class="material-symbols-outlined">info</span>
                     <span class="text-[10px]">Cargando...</span>
                 </a>
                 <a id="nav-devices" href="#"

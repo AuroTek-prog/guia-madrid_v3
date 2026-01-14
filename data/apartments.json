@@ -72,14 +72,17 @@
       "phone": "+34 638 90 89 49"
     },
     "wifi": {
-     "type": "DIGIFIBRA-DRTE",
-     "code": "P5tSeK2PXZPz",
+      "network": "DIGIFIBRA-DRTE",
+      "password": "P5tSeK2PXZPz"
+    },
+    "access": {
+      "type": "smart",
+      "code": "sin códigos",
       "instructions": [
-        "Al abrir esta guia te encontraras con varias pestañas, selecciona Información esencial y tendras dos botones para acceder al apartamento",
+        "Al abrir esta guía te encontrarás con varias pestañas, selecciona Información esencial y tendrás dos botones para acceder al apartamento",
         "La luz se pondrá verde y la cerradura se desbloqueará."
       ]
     },
-    "access": { "type": "Inteligente", "code": "sin codigos" },
     "devices": {
       "heating": { "type": "central", "detailsKey": "heating_central" }
     },
