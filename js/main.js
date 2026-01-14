@@ -1,4 +1,4 @@
-// js/main.js - Versión robusta y optimizada (enero 2026)
+// js/main.js - Versión corregida y optimizada (enero 2026)
 
 // ==============================
 // Estado global
@@ -7,56 +7,137 @@ window.appState = {
     apartmentId: null,
     lang: 'es',
     apartmentData: null,
-    translations: null
+    translations: null,
+    debugMode: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
 };
 
 // ==============================
-// Traducción global con fallback
+// Traducción global con placeholders y glosario
 // ==============================
-window.t = function(key) {
-    if (!window.appState?.translations) return `[${key}]`;
-    return key.split('.').reduce((obj, k) => obj?.[k], window.appState.translations) ?? `[${key}]`;
+window.t = function(key, placeholders = {}, options = {}) {
+    // Opciones: { useGlossary: true, silent: false }
+    const { useGlossary = true, silent = false } = options;
+    
+    if (!window.appState?.translations) {
+        if (!silent) {
+            if (window.appState.debugMode) {
+                console.warn('Traducciones no cargadas');
+            }
+        }
+        return `[${key}]`;
+    }
+    
+    // Obtener el valor de la clave desde el objeto de traducciones
+    const keys = key.split('.');
+    let value = window.appState.translations;
+    
+    for (const k of keys) {
+        value = value?.[k];
+        if (value === undefined) {
+            if (!silent) {
+                if (window.appState.debugMode) {
+                    console.warn(`Clave de traducción no encontrada: ${key}`);
+                }
+            }
+            return `[${key}]`;
+        }
+    }
+    
+    // Si el valor es una cadena, procesar placeholders y glosario
+    if (typeof value === 'string') {
+        // Reemplazar placeholders como {{key}}
+        for (const placeholderKey in placeholders) {
+            if (placeholders.hasOwnProperty(placeholderKey)) {
+                const regex = new RegExp(`{{\\s*${placeholderKey}\\s*}}`, 'g');
+                value = value.replace(regex, placeholders[placeholderKey]);
+            }
+        }
+        
+        // Aplicar traducción con glosario si es necesario
+        if (useGlossary && window.appState.lang !== 'es' && window.appState.translations?.glossary) {
+            value = translateWithGlossary(value, window.appState.lang);
+        }
+    }
+    
+    return value;
 };
 
 // ==============================
 // Traducción con glosario de palabras clave
 // ==============================
-/**
- * Traduce un texto usando un glosario de palabras clave.
- * @param {string} text - El texto original en español.
- * @param {string} lang - El código del idioma de destino ('en', 'de', etc.).
- * @returns {string} - El texto con las palabras clave traducidas.
- */
 window.translateWithGlossary = function(text, lang) {
-    // Si el idioma es español o no hay traducciones, devolver el texto original
-    if (lang === 'es' || !window.appState?.translations?.glossary) {
-        return text;
-    }
-
+    if (lang === 'es' || !window.appState?.translations?.glossary) return text;
     const glossary = window.appState.translations.glossary;
     let translatedText = text;
-
+    
     // Ordenar las claves por longitud (descendente) para traducir frases primero
     const sortedKeys = Object.keys(glossary).sort((a, b) => b.length - a.length);
-
+    
     sortedKeys.forEach(spanishTerm => {
         const translation = glossary[spanishTerm];
         if (translation) {
-            // Usamos una expresión regular con 'g' (global) y 'i' (insensible a mayúsculas/minúsculas)
-            // y '\b' (boundary) para no traducir partes de palabras (ej. "casa" en "caseta")
+            // Usar expresión regular con 'g' (global) y 'i' (insensible a mayúsculas/minúsculas)
             const regex = new RegExp(`\\b${spanishTerm}\\b`, 'gi');
             translatedText = translatedText.replace(regex, (match) => {
-                // Intentamos conservar la capitalización original
+                // Conservar la capitalización original
                 if (match[0] === match[0].toUpperCase()) {
-                    // Si la palabra original empieza con mayúscula, la traducción también
                     return translation.charAt(0).toUpperCase() + translation.slice(1);
                 }
                 return translation;
             });
         }
     });
-
+    
     return translatedText;
+};
+
+// Resolver claves de traducción con tolerancia a formatos antiguos (global)
+window.resolveTranslation = function(key, placeholders = {}, options = {}) {
+    if (!key) return '';
+    if (!window.appState?.translations) return `[${key}]`;
+
+    const tryKeys = [];
+    tryKeys.push(key);
+    // underscores -> dots
+    if (key.includes('_')) tryKeys.push(key.replace(/_/g, '.'));
+    // rules_foo -> rules.foo
+    if (key.startsWith('rules_')) tryKeys.push(`rules.${key.replace(/^rules_/, '')}`);
+    // first underscore to dot
+    if (key.includes('_') && !key.includes('.')) tryKeys.push(key.replace('_', '.'));
+
+    for (const candidate of tryKeys) {
+        const parts = candidate.split('.');
+        let node = window.appState.translations;
+        let found = true;
+        for (const p of parts) {
+            if (node && Object.prototype.hasOwnProperty.call(node, p)) {
+                node = node[p];
+            } else {
+                found = false;
+                break;
+            }
+        }
+        if (found && node !== undefined) {
+            let value = node;
+            if (typeof value === 'string') {
+                // placeholders
+                for (const k in placeholders) {
+                    if (Object.prototype.hasOwnProperty.call(placeholders, k)) {
+                        const regex = new RegExp(`{{\\s*${k}\\s*}}`, 'g');
+                        value = value.replace(regex, placeholders[k]);
+                    }
+                }
+                // glossary
+                const useGlossary = options?.useGlossary !== false;
+                if (useGlossary && window.appState.lang !== 'es' && window.appState.translations?.glossary) {
+                    value = window.translateWithGlossary ? window.translateWithGlossary(value, window.appState.lang) : value;
+                }
+            }
+            return value;
+        }
+    }
+
+    return `[${key}]`;
 };
 
 // ==============================
@@ -64,17 +145,35 @@ window.translateWithGlossary = function(text, lang) {
 // ==============================
 window.safeText = function(id, value) {
     const el = document.getElementById(id);
-    if (!el) return console.warn(`⚠️ Elemento #${id} no encontrado`);
+    if (!el) {
+        if (window.appState.debugMode) {
+            console.warn(`⚠️ Elemento #${id} no encontrado`);
+        }
+        return;
+    }
     if (value !== undefined && value !== null) el.textContent = value;
 };
 
 // ==============================
-// Copiar al portapapeles
+// Copiar al portapapeles con animación de éxito
 // ==============================
-window.copyToClipboard = function(text) {
+window.copyToClipboard = function(text, successElementId) {
     if (!navigator.clipboard) return showNotification('Función no disponible');
     navigator.clipboard.writeText(text)
-        .then(() => showNotification(t('common.copied') || 'Copiado'))
+        .then(() => {
+            showNotification(t('common.copied') || 'Copiado');
+            
+            // Mostrar animación de éxito
+            if (successElementId) {
+                const successElement = document.getElementById(successElementId);
+                if (successElement) {
+                    successElement.classList.add('show');
+                    setTimeout(() => {
+                        successElement.classList.remove('show');
+                    }, 2000);
+                }
+            }
+        })
         .catch(err => {
             console.error('Error al copiar:', err);
             showNotification('Error al copiar');
@@ -82,16 +181,81 @@ window.copyToClipboard = function(text) {
 };
 
 // ==============================
-// Mostrar notificaciones
+// Mostrar notificaciones mejoradas
 // ==============================
-window.showNotification = function(message) {
+window.showNotification = function(message, type = 'info', duration = 3000) {
     const notification = document.createElement('div');
-    notification.className =
-        'fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
-    notification.textContent = message;
+    
+    // Clases base
+    notification.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 max-w-sm';
+    
+    // Clases específicas del tipo
+    const typeClasses = {
+        info: 'bg-blue-600 text-white',
+        success: 'bg-green-600 text-white',
+        warning: 'bg-yellow-500 text-white',
+        error: 'bg-red-600 text-white'
+    };
+    
+    notification.classList.add(...typeClasses[type].split(' '));
+    
+    notification.innerHTML = `
+        <div class="flex items-center justify-between">
+            <span>${message}</span>
+            <span onclick="this.parentElement.remove()" class="ml-4 cursor-pointer font-bold">✖</span>
+        </div>
+    `;
+    
     document.body.appendChild(notification);
-    setTimeout(() => notification.style.opacity = '0', 2000);
-    setTimeout(() => notification.remove(), 2300);
+    
+    // Animación de entrada
+    setTimeout(() => {
+        notification.classList.add('opacity-100');
+    }, 10);
+    
+    // Animación de salida y eliminación
+    setTimeout(() => {
+        notification.classList.remove('opacity-100');
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, duration);
+};
+
+// ==============================
+// Validación de traducciones (solo en modo debug)
+// ==============================
+window.validateTranslations = function() {
+    if (!window.appState.debugMode) return;
+    
+    const usedKeys = new Set();
+    
+    // Recolectar todas las claves usadas en el código
+    document.querySelectorAll('[data-t]').forEach(el => {
+        usedKeys.add(el.dataset.t);
+    });
+    
+    document.querySelectorAll('[data-translate]').forEach(el => {
+        usedKeys.add(el.dataset.translate);
+    });
+    
+    // Verificar si todas las claves usadas existen en las traducciones
+    const missingKeys = [];
+    usedKeys.forEach(key => {
+        if (t(key, {}, { silent: true }) === `[${key}]`) {
+            missingKeys.push(key);
+        }
+    });
+    
+    if (missingKeys.length > 0) {
+        console.groupCollapsed('⚠️ Claves de traducción faltantes:', true);
+        console.table(missingKeys);
+        console.groupEnd();
+    } else {
+        console.log('✅ Todas las claves de traducción están definidas');
+    }
 };
 
 // ==============================
@@ -127,7 +291,7 @@ window.setupBottomNavigation = function(apartmentId, lang) {
         { id: 'nav-contact', href: `${root}pages/contact.html${baseUrl}`, key: 'navigation.contact_title' },
         { id: 'nav-essentials', href: `${root}pages/essentials.html${baseUrl}`, key: 'navigation.essentials_title' }
     ];
-
+    
     navMap.forEach(({ id, href, key }) => {
         const link = document.getElementById(id);
         if (link) {
@@ -136,11 +300,14 @@ window.setupBottomNavigation = function(apartmentId, lang) {
             if (span) span.textContent = t(key) || key;
         }
     });
-    console.log('Navegación inferior configurada:', navMap);
+    
+    if (window.appState.debugMode) {
+        console.log('Navegación inferior configurada:', navMap);
+    }
 };
 
 // ==============================
-// Inicialización principal
+// Inicialización principal mejorada
 // ==============================
 async function initializeApp() {
     const params = new URLSearchParams(window.location.search);
@@ -148,31 +315,36 @@ async function initializeApp() {
     window.appState.lang = params.get('lang') || 'es';
 
     try {
-        const [apartmentRes, translationsRes] = await Promise.all([
-            fetch(`${window.ROOT_PATH}data/apartments.json`),
-            fetch(`${window.ROOT_PATH}data/${window.appState.lang}.json`)
-        ]);
+        // Cargar datos de forma secuencial para evitar errores de referencia
+        const apartmentsRes = await fetch(`${window.ROOT_PATH}data/apartments.json`);
+        const translationsRes = await fetch(`${window.ROOT_PATH}data/${window.appState.lang}.json`);
 
-        if (!apartmentRes.ok || !translationsRes.ok) throw new Error('Error cargando datos');
+        if (!apartmentsRes.ok || !translationsRes.ok) {
+            throw new Error('Error cargando datos');
+        }
 
-        window.appState.apartmentData = await apartmentRes.json();
-        window.appState.translations = await translationsRes.json();
+        const apartmentsData = await apartmentsRes.json();
+        const translations = await translationsRes.json();
+
+        window.appState.apartmentData = apartmentsData;
+        window.appState.translations = translations;
 
         if (!window.appState.apartmentData[window.appState.apartmentId]) {
-            console.warn(`Apartamento "${window.appState.apartmentId}" no encontrado → usando default`);
+            if (window.appState.debugMode) {
+                console.warn(`Apartamento "${window.appState.apartmentId}" no encontrado → usando default`);
+            }
             window.appState.apartmentId = 'sol-101';
-            if (!window.appState.apartmentData['sol-101']) throw new Error('Default sol-101 no existe');
+            if (!window.appState.apartmentData['sol-101']) {
+                throw new Error('Default sol-101 no existe');
+            }
         }
 
         document.documentElement.lang = window.appState.lang;
 
-        const wait = setInterval(() => {
-            if (typeof renderPage === 'function') {
-                clearInterval(wait);
-                renderPage();
-            }
-        }, 100);
-        setTimeout(() => clearInterval(wait), 5000);
+        // Esperar a que la página esté completamente cargada antes de ejecutar renderPage
+        if (typeof renderPage === 'function') {
+            renderPage();
+        }
 
     } catch (error) {
         console.error('Error inicializando app:', error);
@@ -190,19 +362,23 @@ async function initializeApp() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', initializeApp);
+// ==============================
+// Inicialización con validación
+// ==============================
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp();
+    
+    // Validar traducciones en modo debug
+    setTimeout(() => {
+        validateTranslations();
+    }, 1000);
+});
 
 // =====================================================
 // Zona del apartamento (Turf.js) con tolerancia mejorada
 // =====================================================
 let __zonesCache = null;
 
-/**
- * Detecta la zona donde se encuentra un apartamento.
- * @param {Object} apartment {lat, lng}
- * @param {number} tolerance Tolerancia en grados para cerrar polígonos
- * @returns {Promise<Object|null>} Zona encontrada o null
- */
 async function getApartmentZone(apartment, tolerance = 0.0007) {
     if (!apartment?.lat || !apartment?.lng) return null;
     const lat = Number(apartment.lat);
@@ -231,12 +407,16 @@ async function getApartmentZone(apartment, tolerance = 0.0007) {
             }
 
             if (turf.booleanPointInPolygon(point, turf.polygon([coords]))) {
-                console.log(`Zona detectada: ${zone.name} (id: ${zone.id})`);
+                if (window.appState.debugMode) {
+                    console.log(`Zona detectada: ${zone.name} (id: ${zone.id})`);
+                }
                 return zone;
             }
         }
 
-        console.log('No se encontró zona para:', { lat, lng });
+        if (window.appState.debugMode) {
+            console.log('No se encontró zona para:', { lat, lng });
+        }
         return null;
 
     } catch (err) {

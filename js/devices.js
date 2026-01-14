@@ -1,23 +1,40 @@
+/* =====================================================
+   js/devices.js - Página de dispositivos del apartamento
+   - Renderiza lista de dispositivos
+   - Modal de detalles
+   - Barra superior: regresar + idioma
+   - Barra inferior: navegación entre pestañas
+===================================================== */
+
 function renderPage() {
     const apt = window.appState.apartmentData[window.appState.apartmentId];
 
-    // Actualizar textos estáticos de la página
+    // ==============================
+    // Textos estáticos de la página
+    // ==============================
     document.title = t('navigation.devices_title');
-    document.getElementById('page-title').textContent = t('navigation.devices_title');
-    document.getElementById('headline').textContent = t('devices.title');
-    document.getElementById('subtitle').textContent = t('devices.subtitle');
-    document.getElementById('appliances-title').textContent = t('devices.appliances_title');
-    document.getElementById('contact-host-text').textContent = t('devices.contact_host');
+    safeText('page-title', t('navigation.devices_title'));
+    safeText('headline', t('devices.title'));
+    safeText('subtitle', t('devices.subtitle'));
+    safeText('appliances-title', t('devices.appliances_title'));
+    safeText('contact-host-text', t('devices.contact_host'));
 
-    // Actualizar textos de los botones rápidos
-    document.getElementById('unlock-door-text').textContent = t('devices.unlock_door');
-    document.getElementById('unlock-door-desc').textContent = t('devices.unlock_door_desc');
-    document.getElementById('wifi-code-text').textContent = t('devices.wifi_code');
-    document.getElementById('wifi-code-desc').textContent = t('devices.wifi_code_desc');
+    // Textos botones rápidos
+    safeText('unlock-door-text', t('devices.unlock_door'));
+    safeText('unlock-door-desc', t('devices.unlock_door_desc'));
+    safeText('wifi-code-text', t('devices.wifi_code'));
+    safeText('wifi-code-desc', t('devices.wifi_code_desc'));
 
-    // Generar la lista de dispositivos dinámicamente
-    const devicesList = document.getElementById('devices-list');
-    devicesList.innerHTML = ''; // Limpiar contenido previo
+    // ==============================
+    // Barra superior: regresar + idioma
+    // ==============================
+    setupTopBar();
+
+    // ==============================
+    // Lista de dispositivos dinámica
+    // ==============================
+    const devicesList = safeGet('devices-list');
+    if (devicesList) devicesList.innerHTML = '';
 
     const deviceIcons = {
         heating: 'thermostat',
@@ -48,16 +65,23 @@ function renderPage() {
         `;
         devicesList.appendChild(listItem);
     }
-    
+
+    // ==============================
     // Configurar navegación inferior
+    // ==============================
     setupBottomNavigation(window.appState.apartmentId, window.appState.lang);
 }
 
+/* =====================================================
+   Modal de detalles de dispositivos
+===================================================== */
 function showDeviceDetails(deviceKey) {
     const apt = window.appState.apartmentData[window.appState.apartmentId];
-    const modal = document.getElementById('device-modal');
-    const title = document.getElementById('modal-title');
-    const content = document.getElementById('modal-content');
+    const modal = safeGet('device-modal');
+    const title = safeGet('modal-title');
+    const content = safeGet('modal-content');
+
+    if (!modal || !title || !content) return;
 
     let deviceTitle, deviceInstructions;
 
@@ -98,47 +122,75 @@ function showDeviceDetails(deviceKey) {
 
     title.textContent = deviceTitle;
     content.innerHTML = deviceInstructions;
-    
-    // Mostrar el modal
+
     modal.classList.remove('hidden');
 }
 
 function closeDeviceModal() {
-    document.getElementById('device-modal').classList.add('hidden');
+    const modal = safeGet('device-modal');
+    if (modal) modal.classList.add('hidden');
 }
 
+/* =====================================================
+   Botón de contacto
+===================================================== */
 function contactHost() {
     const apt = window.appState.apartmentData[window.appState.apartmentId];
     const phoneNumber = apt.host.phone;
-    if (phoneNumber) {
-        window.open(`tel:${phoneNumber}`, '_self');
-    } else {
-        showNotification("El número de teléfono del anfitrión no está disponible.");
+    if (phoneNumber) window.open(`tel:${phoneNumber}`, '_self');
+    else showNotification("El número de teléfono del anfitrión no está disponible.");
+}
+
+/* =====================================================
+   Barra superior: regresar + idioma
+===================================================== */
+function setupTopBar() {
+    const params = new URLSearchParams(window.location.search);
+    const apartmentId = params.get('apartment');
+    const lang = params.get('lang') || 'es';
+
+    const backBtn = safeGet('btn-back');
+    if (backBtn) {
+        backBtn.onclick = () => {
+            if (document.referrer) {
+                window.history.back();
+            } else if (apartmentId) {
+                window.location.href = `${window.ROOT_PATH}index.html?apartment=${apartmentId}&lang=${lang}`;
+            } else {
+                window.location.href = `${window.ROOT_PATH}language.html`;
+            }
+        };
+    }
+
+    const langBtn = safeGet('btn-lang');
+    if (langBtn) {
+        langBtn.onclick = () => {
+            window.location.href = `${window.ROOT_PATH}language.html?apartment=${apartmentId}`;
+        };
     }
 }
 
-// Función para configurar la navegación inferior
+/* =====================================================
+   Barra inferior de navegación
+===================================================== */
 function setupBottomNavigation(apartmentId, lang) {
     const baseUrl = `?apartment=${apartmentId}&lang=${lang}`;
-    
-    // Configurar enlaces de navegación
-    const navHome = document.getElementById('nav-home');
+
+    const navHome = safeGet('nav-home');
     if (navHome) navHome.href = `${window.ROOT_PATH}index.html${baseUrl}`;
-    
-    const navDevices = document.getElementById('nav-devices');
+
+    const navDevices = safeGet('nav-devices');
     if (navDevices) navDevices.href = `devices.html${baseUrl}`;
-    
-    const navRecommendations = document.getElementById('nav-recommendations');
+
+    const navRecommendations = safeGet('nav-recommendations');
     if (navRecommendations) navRecommendations.href = `recommendations.html${baseUrl}`;
-    
-    const navTourism = document.getElementById('nav-tourism');
+
+    const navTourism = safeGet('nav-tourism');
     if (navTourism) navTourism.href = `tourism.html${baseUrl}`;
-    
-    // Añadir navegación a la página de contacto si existe
-    const navContact = document.getElementById('nav-contact');
+
+    const navContact = safeGet('nav-contact');
     if (navContact) navContact.href = `contact.html${baseUrl}`;
-    
-    // Actualizar textos de navegación
+
     const navItems = [
         { id: 'nav-home', key: 'navigation.nav_home' },
         { id: 'nav-devices', key: 'navigation.devices_title' },
@@ -146,12 +198,31 @@ function setupBottomNavigation(apartmentId, lang) {
         { id: 'nav-tourism', key: 'navigation.tourism_title' },
         { id: 'nav-contact', key: 'navigation.contact_title' }
     ];
-    
+
     navItems.forEach(({ id, key }) => {
-        const nav = document.getElementById(id);
+        const nav = safeGet(id);
         if (nav) {
             const span = nav.querySelector('span:last-child');
             if (span) span.textContent = t(key) || key;
         }
     });
 }
+
+/* =====================================================
+   Helpers
+===================================================== */
+function safeGet(id) { return document.getElementById(id); }
+function safeText(id, value) { const el = safeGet(id); if(el) el.textContent = value; }
+function showNotification(msg) {
+    const notif = document.createElement('div');
+    notif.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity duration-300';
+    notif.innerHTML = msg + ' <span onclick="this.parentNode.remove()" class="ml-2 cursor-pointer font-bold">✖</span>';
+    document.body.appendChild(notif);
+    setTimeout(()=>notif.style.opacity='0',3000);
+    setTimeout(()=>notif.remove(),3500);
+}
+
+/* =====================================================
+   Inicialización
+===================================================== */
+document.addEventListener('DOMContentLoaded', renderPage);

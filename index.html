@@ -99,8 +99,18 @@
 </head>
 <body class="bg-background-light dark:bg-background-dark text-[#0d121b] dark:text-white min-h-screen flex flex-col antialiased selection:bg-primary/20">
 
+<!-- Barra Superior -->
+<div id="top-bar" class="w-full flex justify-between items-center p-4 bg-white dark:bg-[#1a2233] shadow-md fixed top-0 left-0 z-50">
+    <button id="btn-back" class="text-primary dark:text-white text-2xl">
+        <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <button id="btn-lang" class="text-primary dark:text-white text-2xl">
+        <span class="material-symbols-outlined">language</span>
+    </button>
+</div>
+
 <!-- Hero Section -->
-<div class="relative w-full h-[55vh] shrink-0">
+<div class="relative w-full h-[55vh] shrink-0 mt-16">
     <div id="hero-image" class="absolute inset-0 bg-cover bg-center" data-alt="Sunlit Madrid balcony with view of classic architecture"></div>
     <div class="absolute inset-0 bg-gradient-to-t from-background-light via-transparent to-black/20 dark:from-background-dark dark:via-transparent dark:to-black/40"></div>
     <div class="absolute top-0 left-0 w-full p-6 pt-12 flex justify-between items-start">
@@ -134,7 +144,7 @@
 </div>
 
 <!-- Main Content -->
-<div class="flex-1 flex flex-col items-center w-full max-w-md mx-auto px-6 pt-8 pb-10">
+<div class="flex-1 flex flex-col items-center w-full max-w-md mx-auto px-6 pt-16 pb-10">
     <div id="language-selector-section" class="w-full">
         <div class="text-center mb-6">
             <h3 id="select-lang-title" class="text-xl font-bold text-[#0d121b] dark:text-white mb-1">Cargando...</h3>
@@ -202,10 +212,7 @@
     window.ROOT_PATH = './';
 </script>
 
-<!-- Primero main.js (define appState y utilidades) -->
 <script src="./js/main.js" defer></script>
-
-<!-- Después index.js (usa appState y renderiza la página) -->
 <script src="./js/index.js" defer></script>
 
 </body>

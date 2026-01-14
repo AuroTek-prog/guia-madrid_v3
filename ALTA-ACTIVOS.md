@@ -49,7 +49,7 @@
     ]
   },
   "devices": {
-    "climatzacion": { "type": "central", "detailsKey": "climatizacion_central" },
+  "climatizacion": { "type": "central", "detailsKey": "climatizacion_central" },
     // ... copia o adapta los dispositivos que necesites ...
   },
   "houseRules": [

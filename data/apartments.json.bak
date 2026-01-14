@@ -89,7 +89,7 @@
       }
     },
     "rules": {
-      "quiet_hours_start": "23:00",
+      "quiet_hours_start": "22:00",
       "quiet_hours_end": "08:00",
       "checkout_time": "11:00"
     }
